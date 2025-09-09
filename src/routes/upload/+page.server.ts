@@ -1,10 +1,9 @@
 import type { Actions } from './$types';
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import formidable from 'formidable';
 
 const UPLOAD_DIR = '/tmp/uploads'; // 可以根据需要调整
 
@@ -18,34 +17,43 @@ export const actions: Actions = {
 			// 确保上传目录存在
 			await mkdir(UPLOAD_DIR, { recursive: true });
 
-			const form = formidable({
-				uploadDir: UPLOAD_DIR,
-				keepExtensions: true,
-				maxFileSize: 50 * 1024 * 1024, // 50MB
-				filter: (part) => {
-					return part.name === 'file' && part.mimetype === 'application/pdf';
-				}
-			});
+			// 使用 SvelteKit 原生的 formData 处理
+			const formData = await event.request.formData();
+			const file = formData.get('file') as File;
+			const parseType = formData.get('parseType') as string;
 
-			const [fields, files] = await form.parse(event.request);
-			
-			const file = Array.isArray(files.file) ? files.file[0] : files.file;
-			const parseType = Array.isArray(fields.parseType) ? fields.parseType[0] : fields.parseType;
-
-			if (!file) {
+			if (!file || file.size === 0) {
 				return fail(400, { message: '请选择一个PDF文件' });
+			}
+
+			if (file.type !== 'application/pdf') {
+				return fail(400, { message: '只能上传PDF文件' });
+			}
+
+			if (file.size > 50 * 1024 * 1024) { // 50MB
+				return fail(400, { message: '文件大小不能超过50MB' });
 			}
 
 			if (!parseType || !['only_ocr', 'translate'].includes(parseType)) {
 				return fail(400, { message: '请选择有效的处理类型' });
 			}
 
+			// 生成唯一的文件名
+			const timestamp = Date.now();
+			const fileName = `${timestamp}_${file.name}`;
+			const filePath = join(UPLOAD_DIR, fileName);
+
+			// 保存文件
+			const arrayBuffer = await file.arrayBuffer();
+			const buffer = Buffer.from(arrayBuffer);
+			await writeFile(filePath, buffer);
+
 			// 保存任务记录到数据库
 			const taskResult = await db.insert(table.metaParseTask).values({
 				userId: event.locals.user.id,
 				parseType: parseType as 'only_ocr' | 'translate',
-				fileName: file.originalFilename || 'unknown.pdf',
-				filePath: file.filepath,
+				fileName: file.name,
+				filePath: filePath,
 				pageNum: 0, // 稍后通过PDF解析获得
 				status: 0 // pending
 			});
@@ -55,7 +63,7 @@ export const actions: Actions = {
 			return {
 				success: true,
 				message: '文件上传成功，任务已创建',
-				taskId: taskResult[0]?.insertId
+				taskId: taskResult.insertId
 			};
 
 		} catch (error) {

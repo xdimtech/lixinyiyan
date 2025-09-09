@@ -104,6 +104,7 @@
 							</div>
 						</div>
 					</label>
+				</div>
 				</fieldset>
 			</div>
 

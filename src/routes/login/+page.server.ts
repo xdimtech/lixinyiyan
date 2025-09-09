@@ -57,8 +57,17 @@ export const actions: Actions = {
 			const session = await createSession(sessionToken, existingUser.id);
 			setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-			return redirect(302, '/');
+			// 根据用户角色重定向到不同页面
+			if (existingUser.role === 'admin') {
+				throw redirect(302, '/admin');
+			} else {
+				throw redirect(302, '/upload');
+			}
 		} catch (error) {
+			// 如果是重定向错误，重新抛出
+			if (error && typeof error === 'object' && 'status' in error && error.status === 302) {
+				throw error;
+			}
 			console.error('Login error:', error);
 			return fail(500, {
 				message: '登录失败，请稍后重试'

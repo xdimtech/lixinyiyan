@@ -72,8 +72,13 @@ export const actions: Actions = {
 			const session = await createSession(sessionToken, userId);
 			setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-			return redirect(302, '/');
+			// 新注册用户默认跳转到上传页面
+			throw redirect(302, '/upload');
 		} catch (error) {
+			// 如果是重定向错误，重新抛出
+			if (error && typeof error === 'object' && 'status' in error && error.status === 302) {
+				throw error;
+			}
 			console.error('Registration error:', error);
 			return fail(500, {
 				message: '注册失败，请稍后重试'
