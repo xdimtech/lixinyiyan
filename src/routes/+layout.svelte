@@ -48,7 +48,7 @@ const adminItems = [
 			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div class="flex justify-between h-16">
 					<div class="flex items-center">
-						<h1 class="text-xl font-semibold text-gray-900">智能识别翻译系统</h1>
+						<h1 class="text-xl font-semibold text-gray-900">立心译言</h1>
 					</div>
 					<div class="flex items-center space-x-4">
 						<span class="text-sm text-gray-700">欢迎，{data.user?.username}</span>

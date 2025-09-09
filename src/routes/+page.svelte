@@ -3,14 +3,14 @@
 </script>
 
 <svelte:head>
-	<title>智能识别翻译系统</title>
+	<title>立心译言</title>
 	<meta name="description" content="PDF文档智能识别翻译管理系统" />
 </svelte:head>
 
 <div class="max-w-4xl mx-auto">
 	<div class="text-center mb-8">
 		<h1 class="text-3xl font-bold text-gray-900 mb-4">
-			欢迎使用智能识别翻译系统
+			欢迎使用立心译言
 		</h1>
 		<p class="text-xl text-gray-600">
 			上传PDF文档，自动识别文字并翻译为民国风格中文

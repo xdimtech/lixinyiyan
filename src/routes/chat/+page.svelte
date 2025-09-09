@@ -77,7 +77,7 @@
 </script>
 
 <svelte:head>
-	<title>智能对话 - 智能识别翻译系统</title>
+	<title>智能对话 - 立心译言</title>
 </svelte:head>
 
 <div class="max-w-4xl mx-auto h-full flex flex-col">

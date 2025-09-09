@@ -1,4 +1,4 @@
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -49,21 +49,26 @@ export const actions: Actions = {
 			await writeFile(filePath, buffer);
 
 			// 保存任务记录到数据库
-			const taskResult = await db.insert(table.metaParseTask).values({
+			const result = await db.insert(table.metaParseTask).values({
 				userId: event.locals.user.id,
 				parseType: parseType as 'only_ocr' | 'translate',
 				fileName: file.name,
 				filePath: filePath,
 				pageNum: 0, // 稍后通过PDF解析获得
 				status: 0 // pending
-			});
+			}).$returningId();
 
-			console.log('任务创建成功:', taskResult);
+			console.log('任务创建成功:', result);
+
+			const taskId = result[0]?.id;
+			if (!taskId) {
+				return fail(500, { message: '任务创建失败' });
+			}
 
 			return {
 				success: true,
 				message: '文件上传成功，任务已创建',
-				taskId: taskResult.insertId
+				taskId: Number(taskId)
 			};
 
 		} catch (error) {
@@ -73,4 +78,10 @@ export const actions: Actions = {
 			});
 		}
 	}
+};
+
+export const load: PageServerLoad = async ({ locals }) => {
+	return {
+		user: locals.user
+	};
 };

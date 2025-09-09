@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { join, dirname, basename, extname } from 'path';
 import OpenAI from 'openai';
+import * as mupdf from 'mupdf';
 
 // 从PRD中的配置
 const OCR_API_URL = "http://127.0.0.1:8002/v1";
@@ -30,30 +31,53 @@ const TRANSLATE_SYSTEM_PROMPT = `把下面这段话，翻译成中文，要求�
  */
 export async function pdfToImages(pdfFilePath: string, outputDir: string): Promise<string[]> {
     try {
-        // 注意：这里需要安装pdf2pic或类似的库来实现PDF转图片
-        // 由于pdf2pic在Node.js环境中可能有兼容性问题，这里提供一个模拟实现
-        
         const pdfName = basename(pdfFilePath, extname(pdfFilePath));
         const imagesDir = join(outputDir, "images", pdfName);
         await fs.mkdir(imagesDir, { recursive: true });
         
-        // 模拟PDF转图片的过程
-        // 实际实现中需要使用PDF解析库
-        console.log(`模拟将PDF ${pdfFilePath} 转换为图片...`);
+        console.log(`开始将PDF ${pdfFilePath} 转换为图片...`);
         
-        // 这里返回模拟的图片路径
-        // 实际实现中应该调用PDF转图片的库
+        // 读取PDF文件
+        const pdfData = await fs.readFile(pdfFilePath);
+        
+        // 使用MuPDF打开PDF文档
+        const doc = mupdf.Document.openDocument(pdfData, "application/pdf");
+        const pageCount = doc.countPages();
+        
+        console.log(`PDF共有 ${pageCount} 页`);
+        
         const imagePaths: string[] = [];
         
-        // 模拟生成3页图片
-        for (let i = 1; i <= 3; i++) {
-            const imagePath = join(imagesDir, `page_${i.toString().padStart(3, '0')}.png`);
+        // 转换每一页
+        for (let pageNum = 0; pageNum < pageCount; pageNum++) {
+            const page = doc.loadPage(pageNum);
+            
+            // 设置渲染参数
+            const scale = 1.0; // 2倍缩放提高清晰度
+            const matrix = mupdf.Matrix.scale(scale, scale);
+            
+            // 渲染页面为图片
+            const pixmap = page.toPixmap(matrix, mupdf.ColorSpace.DeviceRGB, false);
+            
+            // 保存为PNG文件
+            const imagePath = join(imagesDir, `page_${(pageNum + 1).toString().padStart(3, '0')}.png`);
+            const pngData = pixmap.asPNG();
+            await fs.writeFile(imagePath, pngData);
+            
             imagePaths.push(imagePath);
-            // 创建一个空文件作为占位符
-            await fs.writeFile(imagePath, Buffer.from('placeholder'));
+            console.log(`已转换第 ${pageNum + 1} 页: ${imagePath}`);
+            
+            // 清理资源
+            pixmap.destroy();
+            page.destroy();
         }
         
+        // 清理文档资源
+        doc.destroy();
+        
+        console.log(`成功转换 ${imagePaths.length} 页图片`);
         return imagePaths;
+        
     } catch (error) {
         console.error('PDF转图片失败:', error);
         throw error;
@@ -68,6 +92,7 @@ export async function callOcrApi(imagePath: string, systemPrompt?: string): Prom
         const client = new OpenAI({
             apiKey: "EMPTY",
             baseURL: OCR_API_URL,
+            timeout: 60000, // 30秒超时
         });
 
         // 读取图片文件并转换为base64
@@ -113,6 +138,7 @@ export async function callTranslateApi(text: string, systemPrompt?: string): Pro
         const client = new OpenAI({
             apiKey: "EMPTY",
             baseURL: TRANSLATE_API_URL,
+            timeout: 60000, // 30秒超时
         });
 
         const prompt = systemPrompt || TRANSLATE_SYSTEM_PROMPT;
@@ -125,11 +151,7 @@ export async function callTranslateApi(text: string, systemPrompt?: string): Pro
             messages: [
                 { role: "system", content: prompt },
                 { role: "user", content: text }
-            ],
-            extra_body: {
-                top_k: 20,
-                enable_thinking: false,
-            }
+            ]
         });
 
         return chatResponse.choices[0].message.content || '';
@@ -157,22 +179,36 @@ export async function saveTextToFile(content: string, filePath: string): Promise
  */
 export async function createZipArchive(sourceDir: string, outputPath: string): Promise<void> {
     const archiver = (await import('archiver')).default;
+    const fs = await import('fs');
+    
+    console.log(`开始创建压缩包: ${sourceDir} -> ${outputPath}`);
     
     return new Promise((resolve, reject) => {
         const archive = archiver('zip', {
-            zlib: { level: 9 }
+            zlib: { level: 6 } // 降低压缩级别，提高处理速度
         });
 
-        const stream = require('fs').createWriteStream(outputPath);
+        const stream = fs.createWriteStream(outputPath);
 
+        // 只添加.txt文件，不添加图片文件
         archive
-            .directory(sourceDir, false)
-            .on('error', reject)
+            .glob('**/*.txt', { cwd: sourceDir })
+            .on('error', (err) => {
+                console.error('压缩包创建错误:', err);
+                reject(err);
+            })
             .pipe(stream);
 
-        stream.on('close', resolve);
-        stream.on('error', reject);
+        stream.on('close', () => {
+            console.log(`压缩包创建完成: ${outputPath} (${archive.pointer()} bytes)`);
+            resolve();
+        });
+        stream.on('error', (err) => {
+            console.error('文件流错误:', err);
+            reject(err);
+        });
 
         archive.finalize();
     });
 }
+

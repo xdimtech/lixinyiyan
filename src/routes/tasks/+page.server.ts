@@ -151,17 +151,14 @@ export const actions: Actions = {
 				return fail(400, { message: '任务尚未完成，无法下载' });
 			}
 
-			// 这里应该创建压缩包并返回下载链接
-			// 由于SvelteKit的限制，实际实现可能需要创建一个API端点
-			return { 
-				success: true, 
-				message: '正在准备下载文件...',
-				downloadUrl: `/api/download/${taskId}`
-			};
-
 		} catch (error) {
-			console.error('准备下载失败:', error);
-			return fail(500, { message: '准备下载失败' });
+			console.error('检查任务状态失败:', error);
+			return fail(500, { message: '检查任务状态失败' });
 		}
+
+		// 直接重定向到下载API端点
+		console.log(`重定向到下载API: /api/download/${taskId}`);
+		throw redirect(302, `/api/download/${taskId}`);
 	}
 };
+

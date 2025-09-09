@@ -13,21 +13,37 @@
 		selectedFile = target.files?.[0] || null;
 	};
 
+	let successMessage = '';
+	let taskId = '';
+
 	const handleSubmit = () => {
 		uploading = true;
+		successMessage = '';
+		taskId = '';
 		return async ({ result }: any) => {
 			uploading = false;
 			if (result.type === 'success') {
 				selectedFile = null;
 				const fileInput = document.getElementById('file') as HTMLInputElement;
 				if (fileInput) fileInput.value = '';
+				
+				// 处理成功响应
+				if (result.data) {
+					if (Array.isArray(result.data) && result.data.length >= 4) {
+						successMessage = result.data[2];
+						taskId = result.data[3];
+					} else if (typeof result.data === 'object') {
+						successMessage = result.data.message || '文件上传成功';
+						taskId = result.data.taskId || '';
+					}
+				}
 			}
 		};
 	};
 </script>
 
 <svelte:head>
-	<title>文件上传 - 智能识别翻译系统</title>
+	<title>文件上传 - 立心译言</title>
 </svelte:head>
 
 <div class="max-w-2xl mx-auto">
@@ -128,13 +144,30 @@
 			</div>
 		</form>
 
-		<!-- 消息显示 -->
-		{#if form?.message}
-			<div class="mt-4 p-4 rounded-md {form.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}">
-				{form.message}
-				{#if form.success && form.taskId}
-					<br />任务ID: {form.taskId}
+		<!-- 成功消息显示 -->
+		{#if successMessage}
+			<div class="mt-4 p-4 rounded-md bg-green-50 text-green-800">
+				{successMessage}
+				{#if taskId}
+					<br />任务ID: {taskId}
 				{/if}
+			</div>
+		{/if}
+
+		<!-- 错误消息显示 -->
+		{#if form?.message && !successMessage}
+			<div class="mt-4 p-4 rounded-md bg-red-50 text-red-800">
+				{form.message}
+			</div>
+		{/if}
+
+		<!-- 调试信息 -->
+		{#if form}
+			<div class="mt-4 p-4 bg-gray-100 rounded-md text-sm">
+				<strong>调试信息:</strong><br />
+				Form data: {JSON.stringify(form, null, 2)}<br />
+				Success message: {successMessage}<br />
+				Task ID: {taskId}
 			</div>
 		{/if}
 

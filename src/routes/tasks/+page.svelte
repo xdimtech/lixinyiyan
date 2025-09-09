@@ -37,7 +37,7 @@
 </script>
 
 <svelte:head>
-	<title>任务列表 - 智能识别翻译系统</title>
+	<title>任务列表 - 立心翻译</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto">

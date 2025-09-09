@@ -18,6 +18,9 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         throw error(400, '无效的任务ID');
     }
 
+    //打印日志
+    console.log(`下载任务 ${taskId}`);
+
     try {
         // 获取任务信息
         const [task] = await db
@@ -43,7 +46,11 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         // 构建压缩包路径
         const zipPath = join(DEFAULT_OUTPUT_DIR, `task_${taskId}`, `${task.fileName}_result.zip`);
         
+        console.log(`查找压缩包文件: ${zipPath}`);
+        console.log(`文件是否存在: ${existsSync(zipPath)}`);
+        
         if (!existsSync(zipPath)) {
+            console.error(`压缩包文件不存在: ${zipPath}`);
             throw error(404, '结果文件不存在');
         }
 
@@ -65,3 +72,4 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         throw error(500, '下载文件失败');
     }
 };
+

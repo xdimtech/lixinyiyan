@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>系统管理 - 智能识别翻译系统</title>
+	<title>系统管理 - 立心译言</title>
 </svelte:head>
 
 <div class="max-w-6xl mx-auto">
