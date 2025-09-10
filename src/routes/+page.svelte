@@ -7,7 +7,7 @@
 	<meta name="description" content="PDF文档智能识别翻译管理系统" />
 </svelte:head>
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-7xl mx-auto">
 	<div class="text-center mb-8">
 		<h1 class="text-3xl font-bold text-gray-900 mb-4">
 			欢迎使用立心译言

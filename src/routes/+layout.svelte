@@ -93,10 +93,10 @@ const adminItems = [
 								{#each adminItems as item}
 									<a
 										href={item.href}
-										class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors
-											{$page.url.pathname === item.href
-											? 'bg-red-100 text-red-700'
-											: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}"
+									class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors
+										{$page.url.pathname === item.href
+										? 'bg-indigo-100 text-indigo-700'
+										: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}"
 									>
 										<span class="mr-3">{item.icon}</span>
 										{item.label}

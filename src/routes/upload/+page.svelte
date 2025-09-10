@@ -46,7 +46,7 @@
 	<title>文件上传 - 立心译言</title>
 </svelte:head>
 
-<div class="max-w-2xl mx-auto">
+<div class="max-w-7xl mx-auto">
 	<div class="bg-white rounded-lg shadow-md p-6">
 		<h1 class="text-2xl font-bold text-gray-900 mb-6">文件上传</h1>
 		
@@ -69,7 +69,7 @@
 						accept=".pdf"
 						required
 						on:change={handleFileChange}
-						class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+						class="block w-full h-12 text-sm text-gray-500 bg-white border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-0 file:px-4 file:h-12 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed"
 						disabled={uploading}
 					/>
 				</div>

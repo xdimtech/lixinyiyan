@@ -78,10 +78,10 @@ export const actions: Actions = {
 				top_p: 0.8,
 				max_tokens: 4096,
 				messages: messages,
-				extra_body: {
-					top_k: 20,
-					enable_thinking: true, // 启用思考过程
-				}
+				// extra_body: {
+				// 	top_k: 20,
+				// 	enable_thinking: true, // 启用思考过程
+				// }
 			});
 
 			const response = chatResponse.choices[0].message.content;
