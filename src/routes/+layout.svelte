@@ -18,7 +18,8 @@ const navItems = [
 	{ href: '/', label: '首页', icon: '🏠' },
 	{ href: '/upload', label: '文件上传', icon: '📁' },
 	{ href: '/tasks', label: '任务列表', icon: '📋' },
-	{ href: '/chat', label: '智能对话', icon: '💬' }
+	{ href: '/chat', label: '智能对话', icon: '💬' },
+	{ href: '/pdf-split', label: 'PDF拆分', icon: '🔧' }
 ];
 
 // 管理员菜单项

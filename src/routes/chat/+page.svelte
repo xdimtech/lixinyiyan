@@ -80,7 +80,7 @@
 	<title>智能对话 - 立心译言</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto h-full flex flex-col">
+<div class="max-w-8xl mx-auto h-full flex flex-col">
 	<div class="flex justify-between items-center mb-6">
 		<h1 class="text-2xl font-bold text-gray-900">智能对话</h1>
 		<button
