@@ -23,6 +23,18 @@
 		}>;
 	} | null = null;
 
+	// 防抖处理，避免快速连续点击造成的性能问题
+	let isToggling = false;
+
+	// 图片预览模态框状态
+	let showImageModal = false;
+	let currentPreviewImage: {
+		id: number;
+		name: string;
+		url: string;
+		selected: boolean;
+	} | null = null;
+
 	const handleFileChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		selectedFile = target.files?.[0] || null;
@@ -64,65 +76,148 @@
 	};
 
 	const togglePageSelection = (pageId: number) => {
-		if (!taskData?.images) return;
+		if (!taskData?.images || isToggling) return;
 		
-		taskData.images = taskData.images.map(img => 
-			img.id === pageId ? { ...img, selected: !img.selected } : img
-		);
+		// 简单的防抖处理
+		isToggling = true;
+		
+		// 找到目标图片的索引并直接修改，避免重新创建整个数组
+		const imageIndex = taskData.images.findIndex(img => img.id === pageId);
+		if (imageIndex !== -1) {
+			taskData.images[imageIndex].selected = !taskData.images[imageIndex].selected;
+			// 强制触发Svelte的响应式更新
+			taskData = { ...taskData };
+		}
+		
+		// 重置防抖标志
+		setTimeout(() => {
+			isToggling = false;
+		}, 50);
+	};
+
+	// 打开图片预览模态框
+	const openImagePreview = (image: { id: number; name: string; url: string; selected: boolean }) => {
+		currentPreviewImage = image;
+		showImageModal = true;
+	};
+
+	// 关闭图片预览模态框
+	const closeImagePreview = () => {
+		showImageModal = false;
+		currentPreviewImage = null;
+	};
+
+	// 切换到上一张图片
+	const showPreviousImage = () => {
+		if (!taskData?.images || !currentPreviewImage) return;
+		const currentIndex = taskData.images.findIndex(img => img.id === currentPreviewImage!.id);
+		if (currentIndex > 0) {
+			currentPreviewImage = taskData.images[currentIndex - 1];
+		}
+	};
+
+	// 切换到下一张图片
+	const showNextImage = () => {
+		if (!taskData?.images || !currentPreviewImage) return;
+		const currentIndex = taskData.images.findIndex(img => img.id === currentPreviewImage!.id);
+		if (currentIndex < taskData.images.length - 1) {
+			currentPreviewImage = taskData.images[currentIndex + 1];
+		}
+	};
+
+	// 键盘事件处理
+	const handleKeydown = (e: KeyboardEvent) => {
+		if (!showImageModal) return;
+		
+		switch (e.key) {
+			case 'Escape':
+				closeImagePreview();
+				break;
+			case 'ArrowLeft':
+				showPreviousImage();
+				break;
+			case 'ArrowRight':
+				showNextImage();
+				break;
+		}
 	};
 
 	const selectAllPages = () => {
 		if (!taskData?.images) return;
 		
-		taskData.images = taskData.images.map(img => ({ ...img, selected: true }));
+		// 批量更新，避免逐个重新创建对象
+		taskData.images.forEach(img => {
+			img.selected = true;
+		});
+		// 强制触发Svelte的响应式更新
+		taskData = { ...taskData };
 	};
 
 	const deselectAllPages = () => {
 		if (!taskData?.images) return;
 		
-		taskData.images = taskData.images.map(img => ({ ...img, selected: false }));
+		// 批量更新，避免逐个重新创建对象
+		taskData.images.forEach(img => {
+			img.selected = false;
+		});
+		// 强制触发Svelte的响应式更新
+		taskData = { ...taskData };
 	};
 
 	let exportSuccess = false;
 	let exportMessage = '';
 
-	const handleExport = async () => {
-		if (!taskData?.taskId || !taskData?.images) return;
+	// 准备导出选中的页面
+	let selectedPagesForExport: number[] = [];
+	
+	const prepareExport = () => {
+		if (!taskData?.images) return;
 		
-		const selectedPages = taskData.images
+		selectedPagesForExport = taskData.images
 			.filter(img => img.selected)
 			.map(img => img.id);
 			
-		if (selectedPages.length === 0) {
+		if (selectedPagesForExport.length === 0) {
 			alert('请至少选择一页');
 			return;
 		}
+		
+		console.log('Selected pages for export:', selectedPagesForExport); // 调试日志
 		
 		exporting = true;
 		exportSuccess = false;
 		exportMessage = '';
 		
-		try {
-			const formData = new FormData();
-			formData.append('taskId', taskData.taskId);
-			formData.append('selectedPages', JSON.stringify(selectedPages));
+		// 等待下一个tick确保DOM更新后再提交表单
+		setTimeout(() => {
+			const exportForm = document.getElementById('exportForm') as HTMLFormElement;
+			if (exportForm) {
+				// 直接更新隐藏input的值
+				const hiddenInput = exportForm.querySelector('input[name="selectedPages"]') as HTMLInputElement;
+				if (hiddenInput) {
+					hiddenInput.value = JSON.stringify(selectedPagesForExport);
+				}
+				exportForm.requestSubmit();
+			}
+		}, 10);
+	};
+
+	const handleExportSubmit = () => {
+		exporting = true;
+		return async ({ result }: any) => {
+			exporting = false;
+			console.log('Export result:', result); // 调试日志
 			
-			const response = await fetch('?/export', {
-				method: 'POST',
-				body: formData
-			});
-			
-			const result = await response.json();
 			if (result.type === 'success' && result.data?.success) {
 				exportSuccess = true;
-				exportMessage = `成功导出包含 ${selectedPages.length} 页的PDF文件`;
+				exportMessage = `成功导出包含 ${selectedPagesForExport.length} 页的PDF文件`;
 				
 				// 直接触发下载
 				if (result.data.downloadUrl) {
 					// 创建下载链接
 					const link = document.createElement('a');
 					link.href = result.data.downloadUrl;
-					link.download = `selected-pages-${taskData.taskId}.pdf`;
+					link.download = `selected-pages-${taskData?.taskId}.pdf`;
 					document.body.appendChild(link);
 					link.click();
 					document.body.removeChild(link);
@@ -130,12 +225,7 @@
 			} else {
 				exportMessage = result.data?.message || '导出失败，请重试';
 			}
-		} catch (error) {
-			console.error('Export error:', error);
-			exportMessage = '导出过程中出现错误，请重试';
-		} finally {
-			exporting = false;
-		}
+		};
 	};
 
 	const resetFlow = () => {
@@ -149,11 +239,16 @@
 	};
 
 	$: selectedCount = taskData?.images?.filter(img => img.selected).length || 0;
+	$: currentImageIndex = taskData?.images && currentPreviewImage ? 
+		taskData.images.findIndex(img => img.id === currentPreviewImage!.id) + 1 : 0;
+	$: totalImages = taskData?.images?.length || 0;
 </script>
 
 <svelte:head>
 	<title>PDF拆分 - 立心译言</title>
 </svelte:head>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="max-w-7xl mx-auto">
 	<div class="bg-white rounded-lg shadow-md p-6">
@@ -244,6 +339,18 @@
 				<input type="hidden" name="taskId" value={taskData?.taskId || ''} />
 			</form>
 			
+			<!-- 隐藏的导出表单 -->
+			<form 
+				id="exportForm"
+				method="POST" 
+				action="?/export" 
+				style="display: none;"
+				use:enhance={handleExportSubmit}
+			>
+				<input type="hidden" name="taskId" value={taskData?.taskId || ''} />
+				<input type="hidden" name="selectedPages" value={JSON.stringify(selectedPagesForExport)} />
+			</form>
+			
 			<div class="space-y-6">
 				{#if splitting}
 					<div class="text-center py-8">
@@ -280,7 +387,7 @@
 							全不选
 						</button>
 						<button
-							on:click={handleExport}
+							on:click={prepareExport}
 							disabled={selectedCount === 0 || exporting}
 							class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
 						>
@@ -298,32 +405,48 @@
 
 					<!-- 图片网格 -->
 					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-						{#each taskData.images as image}
-							<div class="relative">
+						{#each taskData.images as image (image.id)}
+							<div class="relative group">
 								<div 
-									class="border-2 rounded-lg p-2 cursor-pointer transition-colors {image.selected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-gray-400'}"
+									class="border-2 rounded-lg p-2 cursor-pointer transition-all duration-150 {image.selected ? 'border-indigo-500 bg-indigo-50 shadow-md' : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'}"
 									on:click={() => togglePageSelection(image.id)}
 									role="button"
 									tabindex="0"
 									on:keydown={(e: KeyboardEvent) => e.key === 'Enter' && togglePageSelection(image.id)}
 								>
-									<!-- 图片预览 -->
-									<div class="aspect-[3/4] bg-gray-200 rounded-md overflow-hidden">
-										<img 
-											src={image.url} 
-											alt="第{image.id}页"
-											class="w-full h-full object-cover"
-											loading="lazy"
-											on:error={() => {
-												// 图片加载失败时显示占位符
-												console.error('Failed to load image:', image.url);
-											}}
-										/>
-									</div>
+										<!-- 图片预览 -->
+										<div class="aspect-[3/4] bg-gray-200 rounded-md overflow-hidden relative">
+														<img 
+															src={image.url} 
+															alt="第{image.id}页"
+															class="w-full h-full object-cover transition-opacity duration-300"
+															loading="lazy"
+															decoding="async"
+															on:error={() => {
+																// 图片加载失败时显示占位符
+																console.error('Failed to load image:', image.url);
+															}}
+														/>
+														
+														<!-- 放大预览按钮 -->
+														<button
+															class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 opacity-0 group-hover:opacity-60 flex items-center justify-center"
+															on:click|stopPropagation={(e: Event) => {
+																e.preventDefault();
+																openImagePreview(image);
+															}}
+															aria-label="放大查看第{image.id}页"
+															title="放大查看"
+														>
+															<svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+																<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+															</svg>
+														</button>
+										</div>
 									
 									<!-- 选中状态指示器 -->
 									<div class="absolute top-1 right-1">
-										<div class="w-6 h-6 rounded-full {image.selected ? 'bg-indigo-600' : 'bg-gray-300'} flex items-center justify-center">
+										<div class="w-6 h-6 rounded-full transition-all duration-150 {image.selected ? 'bg-indigo-600 scale-110' : 'bg-gray-300'} flex items-center justify-center">
 											{#if image.selected}
 												<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
 													<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -386,6 +509,101 @@
 		{#if form?.message}
 			<div class="mt-4 p-4 rounded-md bg-red-50 text-red-800">
 				{form.message}
+			</div>
+		{/if}
+
+		<!-- 图片放大预览模态框 -->
+		{#if showImageModal && currentPreviewImage}
+			<div 
+				class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+				on:click={closeImagePreview}
+				on:keydown={(e: KeyboardEvent) => e.key === 'Escape' && closeImagePreview()}
+				role="dialog"
+				aria-modal="true"
+				aria-label="图片预览"
+				tabindex="0"
+			>
+				<!-- 模态框内容 -->
+				<div 
+					class="relative max-w-4xl max-h-full bg-white rounded-lg shadow-2xl overflow-hidden"
+					role="document"
+				>
+					<!-- 关闭按钮 -->
+					<button 
+						class="absolute top-4 right-4 z-10 w-8 h-8 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full flex items-center justify-center transition-all"
+						on:click={closeImagePreview}
+						title="关闭 (ESC)"
+						aria-label="关闭预览"
+					>
+						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+						</svg>
+					</button>
+
+					<!-- 上一张按钮 -->
+					{#if taskData?.images && currentPreviewImage && taskData.images.findIndex(img => img.id === currentPreviewImage!.id) > 0}
+						<button 
+							class="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full flex items-center justify-center transition-all"
+							on:click|stopPropagation={showPreviousImage}
+							title="上一张 (←)"
+							aria-label="上一张图片"
+						>
+							<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+							</svg>
+						</button>
+					{/if}
+
+					<!-- 下一张按钮 -->
+					{#if taskData?.images && currentPreviewImage && taskData.images.findIndex(img => img.id === currentPreviewImage!.id) < taskData.images.length - 1}
+						<button 
+							class="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full flex items-center justify-center transition-all"
+							on:click|stopPropagation={showNextImage}
+							title="下一张 (→)"
+							aria-label="下一张图片"
+						>
+							<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+							</svg>
+						</button>
+					{/if}
+
+					<!-- 图片内容 -->
+					<div class="relative">
+						<img 
+							src={currentPreviewImage.url}
+							alt="第{currentPreviewImage.id}页"
+							class="max-w-full max-h-[80vh] object-contain"
+							decoding="async"
+						/>
+						
+						<!-- 图片信息栏 -->
+						<div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-3">
+							<div class="flex items-center justify-between">
+								<div class="flex items-center space-x-4">
+									<span class="text-sm font-medium">第 {currentPreviewImage.id} 页</span>
+									<span class="text-xs text-gray-300">{currentImageIndex} / {totalImages}</span>
+								</div>
+								
+								<!-- 在预览中切换选中状态 -->
+									<button
+									on:click={() => currentPreviewImage && togglePageSelection(currentPreviewImage.id)}
+									class="flex items-center space-x-2 px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-all"
+									aria-label="切换选中状态"
+								>
+									<div class="w-4 h-4 rounded {currentPreviewImage.selected ? 'bg-indigo-500' : 'bg-gray-400'} flex items-center justify-center">
+										{#if currentPreviewImage.selected}
+											<svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+											</svg>
+										{/if}
+									</div>
+									<span class="text-sm">{currentPreviewImage.selected ? '已选中' : '未选中'}</span>
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		{/if}
 

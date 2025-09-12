@@ -5,15 +5,32 @@ import path from 'path';
 import crypto from 'crypto';
 import { splitPdfToImages, createPdfFromPages } from '$lib/server/pdf-split-processor';
 
-// 确保上传目录存在
-const uploadDir = 'uploads';
-const outputDir = 'uploads/pdf-split';
+// 从环境变量获取目录配置
+const uploadDir = process.env.PDF_UPLOAD_DIR || 'uploads/files';
+const outputDir = process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split';
+console.log('uploadDir:', uploadDir);
+console.log('outputDir:', outputDir);
+// 确保目录存在，递归创建所有必要的父目录
+try {
 
-if (!fs.existsSync(uploadDir)) {
-	fs.mkdirSync(uploadDir, { recursive: true });
-}
-if (!fs.existsSync(outputDir)) {
-	fs.mkdirSync(outputDir, { recursive: true });
+	if (!fs.existsSync(uploadDir)) {
+		console.log(`创建上传目录: ${uploadDir}`);
+		fs.mkdirSync(uploadDir, { recursive: true });
+		console.log(`✅ 成功创建上传目录: ${uploadDir}`);
+	} else {
+		console.log(`✅ 上传目录已存在: ${uploadDir}`);
+	}
+	
+	if (!fs.existsSync(outputDir)) {
+		console.log(`创建输出目录: ${outputDir}`);
+		fs.mkdirSync(outputDir, { recursive: true });
+		console.log(`✅ 成功创建输出目录: ${outputDir}`);
+	} else {
+		console.log(`✅ 输出目录已存在: ${outputDir}`);
+	}
+} catch (error) {
+	console.error('❌ 创建目录时出错:', error);
+	console.error('请检查目录权限或手动创建目录');
 }
 
 export const load: PageServerLoad = async () => {
@@ -97,15 +114,21 @@ export const actions = {
 		const taskId = formData.get('taskId') as string;
 		const selectedPages = formData.get('selectedPages') as string;
 
+		console.log('Export request received:', { taskId, selectedPages }); // 调试日志
+
 		if (!taskId || !selectedPages) {
+			console.log('Missing parameters:', { taskId: !!taskId, selectedPages: !!selectedPages });
 			return fail(400, { message: '参数不完整' });
 		}
 
 		try {
 			const pages = JSON.parse(selectedPages);
+			console.log('Parsed pages:', pages); // 调试日志
+			
 			const originalPdfPath = path.join(uploadDir, `${taskId}.pdf`);
 			
 			if (!fs.existsSync(originalPdfPath)) {
+				console.log('Original PDF not found:', originalPdfPath);
 				return fail(404, { message: '原PDF文件不存在' });
 			}
 			

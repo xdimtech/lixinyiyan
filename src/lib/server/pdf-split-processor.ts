@@ -16,7 +16,7 @@ export interface PageImage {
  */
 export async function splitPdfToImages(pdfFilePath: string, taskId: string): Promise<PageImage[]> {
     try {
-        const outputDir = join('uploads/pdf-split', taskId);
+        const outputDir = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId);
         await fs.mkdir(outputDir, { recursive: true });
         
         console.log(`开始拆分PDF ${pdfFilePath} 为图片...`);
@@ -82,7 +82,7 @@ export async function splitPdfToImages(pdfFilePath: string, taskId: string): Pro
  */
 export async function createPdfFromPages(originalPdfPath: string, selectedPageIds: number[], taskId: string): Promise<string> {
     try {
-        const outputPath = join('uploads/pdf-split', taskId, 'exported.pdf');
+        const outputPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'exported.pdf');
         
         console.log(`开始使用PDF-lib提取页面: ${selectedPageIds.join(', ')}`);
         
@@ -138,7 +138,7 @@ export async function createPdfFromPages(originalPdfPath: string, selectedPageId
 提取结果: 成功创建包含 ${validPageIds.length} 页的新PDF文档
 `;
         
-        const txtPath = join('uploads/pdf-split', taskId, 'extraction_info.txt');
+        const txtPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'extraction_info.txt');
         await fs.writeFile(txtPath, infoContent, 'utf8');
         
         console.log(`✅ PDF页面提取完成: ${outputPath}`);
@@ -152,7 +152,7 @@ export async function createPdfFromPages(originalPdfPath: string, selectedPageId
         
         // 回退策略：复制原始PDF
         console.log('🔄 回退到复制原始PDF');
-        const outputPath = join('uploads/pdf-split', taskId, 'exported.pdf');
+        const outputPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'exported.pdf');
         const originalData = await fs.readFile(originalPdfPath);
         await fs.writeFile(outputPath, originalData);
         
@@ -168,7 +168,7 @@ export async function createPdfFromPages(originalPdfPath: string, selectedPageId
 注意: 由于技术问题，此次导出包含了原始PDF的所有页面。
 `;
         
-        const errorPath = join('uploads/pdf-split', taskId, 'error_info.txt');
+        const errorPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'error_info.txt');
         await fs.writeFile(errorPath, errorInfo, 'utf8');
         
         return outputPath;
@@ -180,7 +180,7 @@ export async function createPdfFromPages(originalPdfPath: string, selectedPageId
  */
 export async function cleanupTaskFiles(taskId: string): Promise<void> {
     try {
-        const taskDir = join('uploads/pdf-split', taskId);
+        const taskDir = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId);
         await fs.rm(taskDir, { recursive: true, force: true });
         console.log(`已清理任务文件: ${taskDir}`);
     } catch (error) {

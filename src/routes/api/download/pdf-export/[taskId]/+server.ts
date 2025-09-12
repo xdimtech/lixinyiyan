@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 
 	// 构建导出PDF文件路径
-	const exportedPdfPath = path.join('uploads/pdf-split', taskId, 'exported.pdf');
+	const exportedPdfPath = path.join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'exported.pdf');
 
 	// 检查文件是否存在
 	if (!fs.existsSync(exportedPdfPath)) {
