@@ -124,50 +124,41 @@
 	<title>任务列表 - 立心翻译</title>
 </svelte:head>
 
-<div class="max-w-8xl mx-auto">
-	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-2xl font-bold text-gray-900">任务列表</h1>
-		<a
-			href="/upload"
-			class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-			style="color: white !important;"
-		>
-			新建任务
-		</a>
-	</div>
+<div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
 	<!-- 筛选器 -->
-	<div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-		<div class="flex items-end justify-between space-x-4">
+	<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+		<h2 class="text-lg font-semibold text-gray-900 mb-4">筛选条件</h2>
+		<div class="flex items-end justify-between space-x-6">
 			<!-- 左侧筛选框组 -->
-			<div class="flex items-end space-x-4">
+			<div class="flex items-end space-x-6">
 				<div class="w-64">
-					<label for="username-filter" class="block text-sm font-medium text-gray-700 mb-1">
+					<label for="username-filter" class="block text-sm font-medium text-gray-700 mb-2">
 						按用户名筛选
 					</label>
 					<select
 						id="username-filter"
 						bind:value={selectedUserId}
 						on:change={handleFilter}
-						class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+						class="block w-full h-11 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-colors"
 					>
-						<option value="">-- 选择用户名 --</option>
+						<option value="">全部用户</option>
 						{#each data.users as user}
 							<option value={user.id}>{user.username}</option>
 						{/each}
 					</select>
 				</div>
 				<div class="w-48">
-					<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">
+					<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-2">
 						按状态筛选
 					</label>
 					<select
 						id="status-filter"
 						bind:value={selectedStatus}
 						on:change={handleFilter}
-						class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+						class="block w-full h-11 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-colors"
 					>
-						<option value="">-- 选择状态 --</option>
+						<option value="">全部状态</option>
 						<option value="0">等待中</option>
 						<option value="1">处理中</option>
 						<option value="2">已完成</option>
@@ -177,20 +168,19 @@
 			</div>
 			
 			<!-- 右侧按钮组 -->
-			<div class="flex space-x-2">
+			<div class="flex space-x-3">
 				<button
 					type="button"
 					on:click={clearFilter}
-					class="h-10 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+					class="h-11 bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300 font-medium"
 				>
-					清除
+					清除筛选
 				</button>
-				<!-- 用户统计按钮 -->
 				<button
 					type="button"
 					on:click={loadUserStats}
 					disabled={loadingStats}
-					class="h-10 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:bg-purple-300"
+					class="h-11 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:from-purple-300 disabled:to-pink-300 transition-all duration-200 shadow-md font-medium"
 				>
 					{loadingStats ? '加载中...' : '用户统计'}
 				</button>
@@ -200,45 +190,59 @@
 
 	<!-- 消息显示 -->
 	{#if form?.message && showMessage}
-		<div class="mb-4 p-4 rounded-md {form.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'} relative transition-opacity duration-300">
-			{form.message}
+		<div class="mb-6 p-4 rounded-xl {form.success ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border border-green-200' : 'bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border border-red-200'} relative transition-all duration-300 shadow-sm">
+			<div class="flex items-center">
+				<div class="flex-shrink-0">
+					<div class="w-2 h-2 rounded-full {form.success ? 'bg-green-500' : 'bg-red-500'} mr-3"></div>
+				</div>
+				<div class="font-medium">{form.message}</div>
+			</div>
 			<button 
 				type="button" 
 				on:click={() => showMessage = false}
-				class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+				class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
 			>
-				✕
+				<span class="sr-only">关闭</span>
+				<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+				</svg>
 			</button>
 		</div>
 	{/if}
 
 	{#if data.error}
-		<div class="mb-4 p-4 rounded-md bg-red-50 text-red-800">
-			{data.error}
+		<div class="mb-6 p-4 rounded-xl bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border border-red-200 shadow-sm">
+			<div class="flex items-center">
+				<div class="w-2 h-2 rounded-full bg-red-500 mr-3"></div>
+				<div class="font-medium">{data.error}</div>
+			</div>
 		</div>
 	{/if}
 
 	<!-- 用户统计显示 -->
 	{#if showUserStats && userStats.length > 0}
-		<div class="mb-6 bg-white rounded-lg shadow-sm p-4">
-			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-lg font-medium text-gray-900">用户任务统计</h3>
+		<div class="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+			<div class="flex justify-between items-center mb-6">
+				<h3 class="text-xl font-semibold text-gray-900">用户任务统计</h3>
 				<button
 					type="button"
 					on:click={() => showUserStats = false}
-					class="text-gray-400 hover:text-gray-600"
+					class="text-gray-400 hover:text-gray-600 transition-colors p-1"
 				>
-					✕
+					<span class="sr-only">关闭</span>
+					<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+					</svg>
 				</button>
 			</div>
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 				{#each userStats as stat}
-					<div class="bg-gray-50 p-3 rounded-lg">
+					<div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-lg border border-indigo-100 hover:shadow-md transition-shadow">
 						<div class="flex justify-between items-center">
-							<span class="text-sm font-medium text-gray-900">{stat.username}</span>
-							<span class="text-lg font-bold text-indigo-600">{stat.taskCount}</span>
+							<span class="text-sm font-semibold text-gray-900">{stat.username}</span>
+							<span class="text-2xl font-bold text-indigo-600">{stat.taskCount}</span>
 						</div>
-						<div class="text-xs text-gray-500">个任务</div>
+						<div class="text-xs text-indigo-600 mt-1 font-medium">个任务</div>
 					</div>
 				{/each}
 			</div>
@@ -246,13 +250,14 @@
 	{/if}
 
 	<!-- 任务列表 -->
-	<div class="bg-white shadow-sm rounded-lg overflow-hidden">
+	<div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
 		{#if filteredTasks.length === 0}
-			<div class="text-center py-12">
-				<div class="text-gray-500 text-lg">暂无任务记录</div>
+			<div class="text-center py-16">
+				<div class="text-gray-400 text-lg mb-2">暂无任务记录</div>
+				<p class="text-gray-500 mb-6">还没有任何任务，创建您的第一个任务吧</p>
 				<a
 					href="/upload"
-					class="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+					class="inline-block bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md font-medium"
 				>
 					创建第一个任务
 				</a>
@@ -260,101 +265,105 @@
 		{:else}
 			<div class="overflow-x-auto">
 				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+					<thead class="bg-gradient-to-r from-gray-50 to-gray-100">
 						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								任务ID
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								用户名
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								文件名
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								处理类型
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								页数
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								状态
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								创建时间
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								操作
 							</th>
 						</tr>
 					</thead>
-					<tbody class="bg-white divide-y divide-gray-200">
-						{#each filteredTasks as task}
-							<tr class="hover:bg-gray-50">
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									#{task.id}
+					<tbody class="bg-white divide-y divide-gray-100">
+						{#each filteredTasks as task, index}
+							<tr class="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 transition-all duration-150 {index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}">
+								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+									<span class="bg-gray-100 px-2 py-1 rounded-md text-xs">#{task.id}</span>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									{task.username}
+									<div class="font-medium">{task.username}</div>
 								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
-									{task.fileName}
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									{parseTypeMap[task.parseType]}
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs">
+									<div class="truncate" title="{task.fileName}">{task.fileName}</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									{task.pageNum || '-'}
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {statusMap[task.status].class}">
-										{statusMap[task.status].label}
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+										{parseTypeMap[task.parseType]}
 									</span>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									{formatDate(task.createdAt)}
+									<span class="font-mono">{task.pageNum || '-'}</span>
 								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-									{#if task.status === 2}
-										<form method="POST" action="?/download" use:enhance class="inline">
-											<input type="hidden" name="taskId" value={task.id} />
-											<button
-												type="submit"
-												class="text-indigo-600 hover:text-indigo-900"
+								<td class="px-6 py-4 whitespace-nowrap">
+									<span class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full {statusMap[task.status].class}">
+										{statusMap[task.status].label}
+									</span>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+									<div class="font-mono text-xs">{formatDate(task.createdAt)}</div>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+									<div class="flex items-center space-x-3">
+										{#if task.status === 2}
+											<form method="POST" action="?/download" use:enhance class="inline">
+												<input type="hidden" name="taskId" value={task.id} />
+												<button
+													type="submit"
+													class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+												>
+													下载
+												</button>
+											</form>
+											<a
+												href="/tasks/review/{task.id}"
+												class="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
 											>
-												下载
-											</button>
-										</form>
-										<a
-											href="/tasks/review/{task.id}"
-											class="text-green-600 hover:text-green-900"
-										>
-											去审核
-										</a>
-									{/if}
-									
-									{#if task.userId === data.currentUser?.id || data.currentUser?.role === 'admin'}
-										<form method="POST" action="?/delete" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
-											if (!confirm('确定要删除这个任务吗？')) {
-												cancel();
-												return;
-											}
-											return async ({ result }) => {
-												// 删除成功后重新加载任务列表
-												if (result.type === 'success') {
-													await handleFilter(currentPage);
+												去审核
+											</a>
+										{/if}
+										
+										{#if task.userId === data.currentUser?.id || data.currentUser?.role === 'admin'}
+											<form method="POST" action="?/delete" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
+												if (!confirm('确定要删除这个任务吗？')) {
+													cancel();
+													return;
 												}
-											};
-										}} class="inline">
-											<input type="hidden" name="taskId" value={task.id} />
-											<button
-												type="submit"
-												class="text-red-600 hover:text-red-900"
-											>
-												删除
-											</button>
-										</form>
-									{/if}
+												return async ({ result }) => {
+													// 删除成功后重新加载任务列表
+													if (result.type === 'success') {
+														await handleFilter(currentPage);
+													}
+												};
+											}} class="inline">
+												<input type="hidden" name="taskId" value={task.id} />
+												<button
+													type="submit"
+													class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+												>
+													删除
+												</button>
+											</form>
+										{/if}
+									</div>
 								</td>
 							</tr>
 						{/each}
@@ -366,100 +375,123 @@
 
 	<!-- 分页组件 -->
 	{#if pagination && pagination.totalPages > 1}
-		<div class="mt-6 flex items-center justify-between">
-			<div class="text-sm text-gray-700">
-				显示第 {(pagination.page - 1) * pagination.pageSize + 1} 到 
-				{Math.min(pagination.page * pagination.pageSize, pagination.total)} 条，
-				共 {pagination.total} 条记录
-			</div>
-			
-			<div class="flex items-center space-x-2">
-				<!-- 上一页 -->
-				<button
-					type="button"
-					on:click={() => handlePageChange(currentPage - 1)}
-					disabled={!pagination.hasPrev}
-					class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					上一页
-				</button>
+		<div class="mt-8 bg-white rounded-xl border border-gray-200 p-6">
+			<div class="flex items-center justify-between">
+				<div class="text-sm text-gray-600">
+					<span class="font-medium text-gray-900">
+						显示第 {(pagination.page - 1) * pagination.pageSize + 1} 到 
+						{Math.min(pagination.page * pagination.pageSize, pagination.total)} 条
+					</span>
+					，共 <span class="font-semibold text-indigo-600">{pagination.total}</span> 条记录
+				</div>
 				
-				<!-- 页码 -->
-				{#each Array.from({length: Math.min(5, pagination?.totalPages || 0)}, (_, i) => {
-					const startPage = Math.max(1, (pagination?.page || 1) - 2);
-					const endPage = Math.min(pagination?.totalPages || 1, startPage + 4);
-					return startPage + i;
-				}).filter(page => page <= (pagination?.totalPages || 1)) as page}
+				<div class="flex items-center space-x-1">
+					<!-- 上一页 -->
 					<button
 						type="button"
-						on:click={() => handlePageChange(page)}
-						class="px-3 py-2 text-sm font-medium border rounded-md
-							{page === pagination?.page 
-								? 'text-white bg-indigo-600 border-indigo-600' 
-								: 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'}"
+						on:click={() => handlePageChange(currentPage - 1)}
+						disabled={!pagination.hasPrev}
+						class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all duration-200"
 					>
-						{page}
+						上一页
 					</button>
-				{/each}
-				
-				<!-- 下一页 -->
-				<button
-					type="button"
-					on:click={() => handlePageChange(currentPage + 1)}
-					disabled={!pagination.hasNext}
-					class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					下一页
-				</button>
+					
+					<!-- 页码 -->
+					<div class="flex items-center space-x-1 mx-4">
+						{#each Array.from({length: Math.min(5, pagination?.totalPages || 0)}, (_, i) => {
+							const startPage = Math.max(1, (pagination?.page || 1) - 2);
+							const endPage = Math.min(pagination?.totalPages || 1, startPage + 4);
+							return startPage + i;
+						}).filter(page => page <= (pagination?.totalPages || 1)) as page}
+							<button
+								type="button"
+								on:click={() => handlePageChange(page)}
+								class="px-3 py-2 text-sm font-medium border rounded-lg transition-all duration-200
+									{page === pagination?.page 
+										? 'text-white bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-600 shadow-md' 
+										: 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:border-gray-400'}"
+							>
+								{page}
+							</button>
+						{/each}
+					</div>
+					
+					<!-- 下一页 -->
+					<button
+						type="button"
+						on:click={() => handlePageChange(currentPage + 1)}
+						disabled={!pagination.hasNext}
+						class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all duration-200"
+					>
+						下一页
+					</button>
+				</div>
 			</div>
 		</div>
 	{/if}
 
 	<!-- 统计信息 -->
 	{#if filteredTasks.length > 0}
-		<div class="mt-6 bg-gray-50 rounded-lg p-4">
-			<h3 class="text-lg font-medium text-gray-900 mb-2">
-				统计信息 
+		<div class="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-6">
+			<div class="mb-6">
+				<h3 class="text-xl font-semibold text-gray-900 mb-1">统计信息</h3>
 				{#if selectedUserId || selectedStatus}
-					<span class="text-sm text-gray-500">
-						(筛选条件: 
+					<div class="text-sm text-gray-600">
+						<span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium mr-2">
+							筛选条件
+						</span>
 						{#if selectedUserId}
-							用户: {data.users.find(u => u.id === selectedUserId)?.username || '未知用户'}
+							<span class="text-gray-700">
+								用户: <span class="font-medium">{data.users.find(u => u.id === selectedUserId)?.username || '未知用户'}</span>
+							</span>
 						{/if}
-						{#if selectedUserId && selectedStatus}, {/if}
+						{#if selectedUserId && selectedStatus}
+							<span class="mx-2 text-gray-400">|</span>
+						{/if}
 						{#if selectedStatus}
-							状态: {statusMap[parseInt(selectedStatus)].label}
+							<span class="text-gray-700">
+								状态: <span class="font-medium">{statusMap[parseInt(selectedStatus)].label}</span>
+							</span>
 						{/if}
-						)
-					</span>
+					</div>
 				{/if}
-			</h3>
-			<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-				<div>
-					<span class="text-gray-600">
-						{pagination ? '总记录数' : '总任务数'}:
-					</span>
-					<span class="font-semibold text-gray-900">
+			</div>
+			
+			<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+				<div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+					<div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+						{pagination ? '总记录数' : '总任务数'}
+					</div>
+					<div class="text-2xl font-bold text-gray-900">
 						{pagination ? pagination.total : filteredTasks.length}
-					</span>
+					</div>
 				</div>
-				<div>
-					<span class="text-gray-600">当前页已完成:</span>
-					<span class="font-semibold text-green-600">
+				
+				<div class="bg-white rounded-lg p-4 border border-green-200 shadow-sm">
+					<div class="text-xs font-medium text-green-600 uppercase tracking-wider mb-1">
+						当前页已完成
+					</div>
+					<div class="text-2xl font-bold text-green-600">
 						{filteredTasks.filter(t => t.status === 2).length}
-					</span>
+					</div>
 				</div>
-				<div>
-					<span class="text-gray-600">当前页处理中:</span>
-					<span class="font-semibold text-blue-600">
+				
+				<div class="bg-white rounded-lg p-4 border border-blue-200 shadow-sm">
+					<div class="text-xs font-medium text-blue-600 uppercase tracking-wider mb-1">
+						当前页处理中
+					</div>
+					<div class="text-2xl font-bold text-blue-600">
 						{filteredTasks.filter(t => t.status === 1).length}
-					</span>
+					</div>
 				</div>
-				<div>
-					<span class="text-gray-600">当前页等待中:</span>
-					<span class="font-semibold text-yellow-600">
+				
+				<div class="bg-white rounded-lg p-4 border border-yellow-200 shadow-sm">
+					<div class="text-xs font-medium text-yellow-600 uppercase tracking-wider mb-1">
+						当前页等待中
+					</div>
+					<div class="text-2xl font-bold text-yellow-600">
 						{filteredTasks.filter(t => t.status === 0).length}
-					</span>
+					</div>
 				</div>
 			</div>
 		</div>
