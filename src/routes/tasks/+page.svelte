@@ -24,6 +24,7 @@
 	};
 
 	let selectedUserId = '';
+	let selectedStatus = ''; // 选择的状态
 	let filteredTasks: Task[] = data.tasks; // 筛选后的任务列表
 	let userStats: UserWithTaskCount[] = [];
 	let loadingStats = false;
@@ -32,13 +33,19 @@
 	// 使用POST请求筛选任务
 	const handleFilter = async () => {
 		try {
+			// 构建筛选条件
+			const filters: any = {};
+			
 			if (selectedUserId.trim()) {
-				// 筛选指定用户的任务
-				filteredTasks = await filterTasks({ userId: selectedUserId });
-			} else {
-				// 显示所有任务
-				filteredTasks = await filterTasks({});
+				filters.userId = selectedUserId;
 			}
+			
+			if (selectedStatus.trim()) {
+				filters.status = parseInt(selectedStatus);
+			}
+			
+			// 执行筛选
+			filteredTasks = await filterTasks(filters);
 		} catch (error) {
 			console.error('筛选任务失败:', error);
 			alert('筛选任务失败，请稍后重试');
@@ -48,6 +55,7 @@
 	// 清除筛选
 	const clearFilter = async () => {
 		selectedUserId = '';
+		selectedStatus = '';
 		await handleFilter();
 	};
 
@@ -88,23 +96,45 @@
 
 	<!-- 筛选器 -->
 	<div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-		<div class="flex items-end space-x-4">
-			<div class="flex-1">
-				<label for="username-filter" class="block text-sm font-medium text-gray-700 mb-1">
-					按用户名筛选
-				</label>
-				<select
-					id="username-filter"
-					bind:value={selectedUserId}
-					on:change={handleFilter}
-					class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-				>
-					<option value="">-- 选择用户名 --</option>
-					{#each data.users as user}
-						<option value={user.id}>{user.username}</option>
-					{/each}
-				</select>
+		<div class="flex items-end justify-between space-x-4">
+			<!-- 左侧筛选框组 -->
+			<div class="flex items-end space-x-4">
+				<div class="w-64">
+					<label for="username-filter" class="block text-sm font-medium text-gray-700 mb-1">
+						按用户名筛选
+					</label>
+					<select
+						id="username-filter"
+						bind:value={selectedUserId}
+						on:change={handleFilter}
+						class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+					>
+						<option value="">-- 选择用户名 --</option>
+						{#each data.users as user}
+							<option value={user.id}>{user.username}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="w-48">
+					<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">
+						按状态筛选
+					</label>
+					<select
+						id="status-filter"
+						bind:value={selectedStatus}
+						on:change={handleFilter}
+						class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+					>
+						<option value="">-- 选择状态 --</option>
+						<option value="0">等待中</option>
+						<option value="1">处理中</option>
+						<option value="2">已完成</option>
+						<option value="3">失败</option>
+					</select>
+				</div>
 			</div>
+			
+			<!-- 右侧按钮组 -->
 			<div class="flex space-x-2">
 				<button
 					type="button"
@@ -274,9 +304,17 @@
 		<div class="mt-6 bg-gray-50 rounded-lg p-4">
 			<h3 class="text-lg font-medium text-gray-900 mb-2">
 				统计信息 
-				{#if selectedUserId}
+				{#if selectedUserId || selectedStatus}
 					<span class="text-sm text-gray-500">
-						(已筛选: {data.users.find(u => u.id === selectedUserId)?.username || '未知用户'})
+						(筛选条件: 
+						{#if selectedUserId}
+							用户: {data.users.find(u => u.id === selectedUserId)?.username || '未知用户'}
+						{/if}
+						{#if selectedUserId && selectedStatus}, {/if}
+						{#if selectedStatus}
+							状态: {statusMap[parseInt(selectedStatus)].label}
+						{/if}
+						)
 					</span>
 				{/if}
 			</h3>
