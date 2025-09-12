@@ -196,7 +196,7 @@ export async function callTranslateApi(text: string, systemPrompt?: string, onPr
                 if (delta?.reasoning_content) {
                     reasoningContent += delta.reasoning_content;
                     // 输出推理过程日志
-                    console.log('翻译推理:', delta.reasoning_content);
+                    // console.log('翻译推理:', delta.reasoning_content);
                     
                     // 调用进度回调
                     if (onProgress) {
@@ -213,7 +213,7 @@ export async function callTranslateApi(text: string, systemPrompt?: string, onPr
                 if (delta?.content) {
                     fullResponse += delta.content;
                     // 输出流式内容日志
-                    console.log('翻译内容:', delta.content);
+                    // console.log('翻译内容:', delta.content);
                     
                     // 调用进度回调
                     if (onProgress) {

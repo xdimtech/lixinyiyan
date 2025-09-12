@@ -47,6 +47,7 @@
 	let userStats: UserWithTaskCount[] = [];
 	let loadingStats = false;
 	let showUserStats = false;
+	let refreshing = false;
 
 	// 使用POST请求筛选任务
 	const handleFilter = async (page = 1) => {
@@ -73,6 +74,16 @@
 		} catch (error) {
 			console.error('筛选任务失败:', error);
 			alert('筛选任务失败，请稍后重试');
+		}
+	};
+
+	// 刷新当前页数据
+	const handleRefresh = async () => {
+		refreshing = true;
+		try {
+			await handleFilter(currentPage);
+		} finally {
+			refreshing = false;
 		}
 	};
 
@@ -172,17 +183,40 @@
 				<button
 					type="button"
 					on:click={clearFilter}
-					class="h-11 bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300 font-medium"
+					class="h-11 w-[100px] bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200 border border-gray-300 font-medium transform"
 				>
-					清除筛选
+					<span class="flex items-center justify-center w-full">
+						清除筛选
+					</span>
 				</button>
 				<button
 					type="button"
-					on:click={loadUserStats}
-					disabled={loadingStats}
-					class="h-11 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:from-purple-300 disabled:to-pink-300 transition-all duration-200 shadow-md font-medium"
+					on:click={handleRefresh}
+					disabled={refreshing}
+					class="h-11 w-[100px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:scale-105 active:scale-95 disabled:from-blue-300 disabled:to-indigo-300 disabled:hover:scale-100 disabled:cursor-not-allowed transition-all duration-200 shadow-md font-medium transform relative overflow-hidden"
 				>
-					{loadingStats ? '加载中...' : '用户统计'}
+					<!-- 加载中的背景闪烁效果 -->
+					{#if refreshing}
+						<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+					{/if}
+					
+					<span class="flex items-center justify-center w-full relative z-10">
+						{#if refreshing}
+							<!-- 更精美的旋转图标 -->
+							<svg class="animate-spin h-4 w-4 text-white mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							<!-- 文字渐变动效 -->
+							<span class="text-xs animate-pulse">刷新中</span>
+						{:else}
+							<!-- 刷新图标 -->
+							<svg class="h-4 w-4 text-white mr-1 transition-transform duration-200 hover:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8 8 0 1115.356 2M15 15v5h.582M4.582 15A8.001 8.001 0 0015.582 15m0 0V15a8 8 0 11-15.356-2" />
+							</svg>
+							<span class="text-sm">刷新</span>
+						{/if}
+					</span>
 				</button>
 			</div>
 		</div>

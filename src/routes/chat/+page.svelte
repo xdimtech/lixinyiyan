@@ -2,7 +2,6 @@
 	import type { ActionData } from './$types';
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
-
 	export let form: ActionData;
 
 	let chatHistory: Array<{
