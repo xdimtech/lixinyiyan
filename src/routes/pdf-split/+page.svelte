@@ -16,6 +16,8 @@
 		taskId: string;
 		fileName: string;
 		fileSize: number;
+		storedFileName?: string;
+		dateDir?: string;
 		images?: Array<{
 			id: number;
 			name: string;
@@ -409,6 +411,8 @@
 				use:enhance={handleSplit}
 			>
 				<input type="hidden" name="taskId" value={taskData?.taskId || ''} />
+				<input type="hidden" name="storedFileName" value={taskData?.storedFileName || ''} />
+				<input type="hidden" name="dateDir" value={taskData?.dateDir || ''} />
 			</form>
 			
 			<!-- 隐藏的导出表单 -->
@@ -420,6 +424,8 @@
 				use:enhance={handleExportSubmit}
 			>
 				<input type="hidden" name="taskId" value={taskData?.taskId || ''} />
+				<input type="hidden" name="storedFileName" value={taskData?.storedFileName || ''} />
+				<input type="hidden" name="dateDir" value={taskData?.dateDir || ''} />
 				<input type="hidden" name="selectedPages" value={JSON.stringify(selectedPagesForExport)} />
 			</form>
 			

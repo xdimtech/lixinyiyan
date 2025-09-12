@@ -58,7 +58,33 @@ export const actions = {
 		try {
 			// 生成唯一的任务ID
 			const taskId = crypto.randomUUID();
-			const uploadPath = path.join(uploadDir, `${taskId}.pdf`);
+			
+			// 获取当前日期作为目录名 (格式: 2025-09-12)
+			const today = new Date();
+			const dateDir = today.getFullYear() + '-' + 
+				String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+				String(today.getDate()).padStart(2, '0');
+			
+			// 创建日期目录
+			const dailyUploadDir = path.join(uploadDir, dateDir);
+			if (!fs.existsSync(dailyUploadDir)) {
+				fs.mkdirSync(dailyUploadDir, { recursive: true });
+				console.log(`✅ 创建日期目录: ${dailyUploadDir}`);
+			}
+			
+			// 生成16位随机UUID（取前16位）
+			const shortUUID = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+			
+			// 获取原文件名（不含扩展名）和扩展名
+			const originalName = path.parse(file.name).name;
+			const fileExt = path.parse(file.name).ext;
+			
+			// 构建新的文件名：原文件名 + 16位UUID + 扩展名
+			const newFileName = `${originalName}_${shortUUID}${fileExt}`;
+			const uploadPath = path.join(dailyUploadDir, newFileName);
+			
+			console.log(`上传文件: ${file.name} -> ${newFileName}`);
+			console.log(`存储路径: ${uploadPath}`);
 			
 			// 保存上传的文件
 			const arrayBuffer = await file.arrayBuffer();
@@ -68,7 +94,9 @@ export const actions = {
 				success: true,
 				taskId,
 				fileName: file.name,
-				fileSize: file.size
+				fileSize: file.size,
+				storedFileName: newFileName,
+				dateDir: dateDir
 			};
 		} catch (error) {
 			console.error('PDF upload error:', error);
@@ -79,13 +107,23 @@ export const actions = {
 	split: async ({ request }) => {
 		const formData = await request.formData();
 		const taskId = formData.get('taskId') as string;
+		const storedFileName = formData.get('storedFileName') as string;
+		const dateDir = formData.get('dateDir') as string;
 
 		if (!taskId) {
 			return fail(400, { message: '任务ID不能为空' });
 		}
 
-		const pdfPath = path.join(uploadDir, `${taskId}.pdf`);
+		if (!storedFileName || !dateDir) {
+			return fail(400, { message: '文件存储信息不完整' });
+		}
+
+		// 构建正确的PDF文件路径
+		const pdfPath = path.join(uploadDir, dateDir, storedFileName);
+		console.log(`拆分PDF文件路径: ${pdfPath}`);
+		
 		if (!fs.existsSync(pdfPath)) {
+			console.error(`PDF文件不存在: ${pdfPath}`);
 			return fail(404, { message: 'PDF文件不存在' });
 		}
 
@@ -112,12 +150,19 @@ export const actions = {
 	export: async ({ request }) => {
 		const formData = await request.formData();
 		const taskId = formData.get('taskId') as string;
+		const storedFileName = formData.get('storedFileName') as string;
+		const dateDir = formData.get('dateDir') as string;
 		const selectedPages = formData.get('selectedPages') as string;
 
-		console.log('Export request received:', { taskId, selectedPages }); // 调试日志
+		console.log('Export request received:', { taskId, storedFileName, dateDir, selectedPages }); // 调试日志
 
-		if (!taskId || !selectedPages) {
-			console.log('Missing parameters:', { taskId: !!taskId, selectedPages: !!selectedPages });
+		if (!taskId || !selectedPages || !storedFileName || !dateDir) {
+			console.log('Missing parameters:', { 
+				taskId: !!taskId, 
+				selectedPages: !!selectedPages,
+				storedFileName: !!storedFileName,
+				dateDir: !!dateDir
+			});
 			return fail(400, { message: '参数不完整' });
 		}
 
@@ -125,7 +170,9 @@ export const actions = {
 			const pages = JSON.parse(selectedPages);
 			console.log('Parsed pages:', pages); // 调试日志
 			
-			const originalPdfPath = path.join(uploadDir, `${taskId}.pdf`);
+			// 构建正确的原PDF文件路径
+			const originalPdfPath = path.join(uploadDir, dateDir, storedFileName);
+			console.log(`导出原PDF文件路径: ${originalPdfPath}`);
 			
 			if (!fs.existsSync(originalPdfPath)) {
 				console.log('Original PDF not found:', originalPdfPath);
