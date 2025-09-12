@@ -6,7 +6,8 @@ import OpenAI from 'openai';
 const TRANSLATE_API_URL = "http://127.0.0.1:8003/v1";
 const TRANSLATE_MODEL = "Qwen/Qwen3-14B-FP8";
 
-const DEFAULT_SYSTEM_PROMPT = `您是一位智能助手，擅长回答各种问题并提供有用的信息。请用友好、专业的语气回复用户。`;
+const DEFAULT_SYSTEM_PROMPT = `您是一位民国时期的翻译专家，擅长将英文文本翻译为民国时期的表达风格。翻译时请注意：对于称呼使用"先生"、"女士"。对于日期使用民国纪年。语言风格采用文言文与白话文的交叉使用。遇到人名如果没有合适的翻译请保留
+	原文翻译完毕后不要输出任何注释与背景补充，请把注释与背景补充放到你的思考过程中。`;
 
 export const actions: Actions = {
 	chat: async (event) => {
@@ -33,6 +34,7 @@ export const actions: Actions = {
 			const messages: any[] = [];
 
 			// 添加系统提示
+			console.log('systemPrompt', systemPrompt);
 			const currentSystemPrompt = (typeof systemPrompt === 'string' && systemPrompt.trim()) 
 				? systemPrompt.trim() 
 				: DEFAULT_SYSTEM_PROMPT;
