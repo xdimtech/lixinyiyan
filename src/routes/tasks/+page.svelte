@@ -25,14 +25,12 @@
 
 	let selectedUserId = '';
 	let filteredTasks: Task[] = data.tasks; // 筛选后的任务列表
-	let isFiltering = false; // 筛选加载状态
 	let userStats: UserWithTaskCount[] = [];
 	let loadingStats = false;
 	let showUserStats = false;
 
 	// 使用POST请求筛选任务
 	const handleFilter = async () => {
-		isFiltering = true;
 		try {
 			if (selectedUserId.trim()) {
 				// 筛选指定用户的任务
@@ -44,8 +42,6 @@
 		} catch (error) {
 			console.error('筛选任务失败:', error);
 			alert('筛选任务失败，请稍后重试');
-		} finally {
-			isFiltering = false;
 		}
 	};
 
@@ -92,7 +88,7 @@
 
 	<!-- 筛选器 -->
 	<div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-		<div class="flex items-center space-x-4">
+		<div class="flex items-end space-x-4">
 			<div class="flex-1">
 				<label for="username-filter" class="block text-sm font-medium text-gray-700 mb-1">
 					按用户名筛选
@@ -101,8 +97,7 @@
 					id="username-filter"
 					bind:value={selectedUserId}
 					on:change={handleFilter}
-					disabled={isFiltering}
-					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+					class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
 				>
 					<option value="">-- 选择用户名 --</option>
 					{#each data.users as user}
@@ -114,17 +109,16 @@
 				<button
 					type="button"
 					on:click={clearFilter}
-					disabled={isFiltering}
-					class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 disabled:bg-gray-200"
+					class="h-10 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
 				>
-					{isFiltering ? '清除中...' : '清除'}
+					清除
 				</button>
 				<!-- 用户统计按钮 -->
 				<button
 					type="button"
 					on:click={loadUserStats}
 					disabled={loadingStats}
-					class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:bg-purple-300"
+					class="h-10 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:bg-purple-300"
 				>
 					{loadingStats ? '加载中...' : '用户统计'}
 				</button>
