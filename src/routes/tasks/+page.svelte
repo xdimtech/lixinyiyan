@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { getUsersWithTaskCount, type UserWithTaskCount } from '$lib/api/users';
-	import { filterTasks, type Task } from '$lib/api/tasks';
+	import { filterTasks, type Task, type TaskPagination } from '$lib/api/tasks';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -26,15 +26,21 @@
 	let selectedUserId = '';
 	let selectedStatus = ''; // 选择的状态
 	let filteredTasks: Task[] = data.tasks; // 筛选后的任务列表
+	let pagination: TaskPagination | null = null; // 分页信息
+	let currentPage = 1; // 当前页码
+	let pageSize = 10; // 每页数量
 	let userStats: UserWithTaskCount[] = [];
 	let loadingStats = false;
 	let showUserStats = false;
 
 	// 使用POST请求筛选任务
-	const handleFilter = async () => {
+	const handleFilter = async (page = 1) => {
 		try {
 			// 构建筛选条件
-			const filters: any = {};
+			const filters: any = {
+				page,
+				pageSize
+			};
 			
 			if (selectedUserId.trim()) {
 				filters.userId = selectedUserId;
@@ -45,7 +51,10 @@
 			}
 			
 			// 执行筛选
-			filteredTasks = await filterTasks(filters);
+			const result = await filterTasks(filters);
+			filteredTasks = result.data || [];
+			pagination = result.pagination || null;
+			currentPage = page;
 		} catch (error) {
 			console.error('筛选任务失败:', error);
 			alert('筛选任务失败，请稍后重试');
@@ -56,8 +65,18 @@
 	const clearFilter = async () => {
 		selectedUserId = '';
 		selectedStatus = '';
-		await handleFilter();
+		await handleFilter(1); // 重置到第一页
 	};
+
+	// 分页处理函数
+	const handlePageChange = async (page: number) => {
+		await handleFilter(page);
+	};
+
+	// 组件加载时初始化分页数据
+	onMount(() => {
+		handleFilter(1);
+	});
 
 	const formatDate = (dateString: string | Date) => {
 		const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
@@ -299,6 +318,57 @@
 		{/if}
 	</div>
 
+	<!-- 分页组件 -->
+	{#if pagination && pagination.totalPages > 1}
+		<div class="mt-6 flex items-center justify-between">
+			<div class="text-sm text-gray-700">
+				显示第 {(pagination.page - 1) * pagination.pageSize + 1} 到 
+				{Math.min(pagination.page * pagination.pageSize, pagination.total)} 条，
+				共 {pagination.total} 条记录
+			</div>
+			
+			<div class="flex items-center space-x-2">
+				<!-- 上一页 -->
+				<button
+					type="button"
+					on:click={() => handlePageChange(currentPage - 1)}
+					disabled={!pagination.hasPrev}
+					class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					上一页
+				</button>
+				
+				<!-- 页码 -->
+				{#each Array.from({length: Math.min(5, pagination?.totalPages || 0)}, (_, i) => {
+					const startPage = Math.max(1, (pagination?.page || 1) - 2);
+					const endPage = Math.min(pagination?.totalPages || 1, startPage + 4);
+					return startPage + i;
+				}).filter(page => page <= (pagination?.totalPages || 1)) as page}
+					<button
+						type="button"
+						on:click={() => handlePageChange(page)}
+						class="px-3 py-2 text-sm font-medium border rounded-md
+							{page === pagination?.page 
+								? 'text-white bg-indigo-600 border-indigo-600' 
+								: 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'}"
+					>
+						{page}
+					</button>
+				{/each}
+				
+				<!-- 下一页 -->
+				<button
+					type="button"
+					on:click={() => handlePageChange(currentPage + 1)}
+					disabled={!pagination.hasNext}
+					class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					下一页
+				</button>
+			</div>
+		</div>
+	{/if}
+
 	<!-- 统计信息 -->
 	{#if filteredTasks.length > 0}
 		<div class="mt-6 bg-gray-50 rounded-lg p-4">
@@ -320,23 +390,27 @@
 			</h3>
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 				<div>
-					<span class="text-gray-600">总任务数:</span>
-					<span class="font-semibold text-gray-900">{filteredTasks.length}</span>
+					<span class="text-gray-600">
+						{pagination ? '总记录数' : '总任务数'}:
+					</span>
+					<span class="font-semibold text-gray-900">
+						{pagination ? pagination.total : filteredTasks.length}
+					</span>
 				</div>
 				<div>
-					<span class="text-gray-600">已完成:</span>
+					<span class="text-gray-600">当前页已完成:</span>
 					<span class="font-semibold text-green-600">
 						{filteredTasks.filter(t => t.status === 2).length}
 					</span>
 				</div>
 				<div>
-					<span class="text-gray-600">处理中:</span>
+					<span class="text-gray-600">当前页处理中:</span>
 					<span class="font-semibold text-blue-600">
 						{filteredTasks.filter(t => t.status === 1).length}
 					</span>
 				</div>
 				<div>
-					<span class="text-gray-600">等待中:</span>
+					<span class="text-gray-600">当前页等待中:</span>
 					<span class="font-semibold text-yellow-600">
 						{filteredTasks.filter(t => t.status === 0).length}
 					</span>
