@@ -24,7 +24,8 @@ const navItems = [
 
 // 管理员菜单项
 const adminItems = [
-	{ href: '/admin', label: '系统管理', icon: '⚙️' }
+	{ href: '/admin', label: '系统管理', icon: '⚙️' },
+	{ href: '/admin/users', label: '用户管理', icon: '👥' }
 ];
 </script>
 
@@ -33,7 +34,7 @@ const adminItems = [
 	<div class="min-h-screen flex items-center justify-center bg-gray-50">
 		<div class="text-center">
 			<h2 class="text-2xl font-bold text-gray-900 mb-4">请先登录</h2>
-			<a href="/login" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+			<a href="/login" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700" style="color: white !important; text-decoration: none;">
 				前往登录
 			</a>
 		</div>
@@ -78,6 +79,7 @@ const adminItems = [
 									{$page.url.pathname === item.href
 									? 'bg-indigo-100 text-indigo-700'
 									: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}"
+								style="text-decoration: none; {$page.url.pathname === item.href ? 'color: rgb(67 56 202) !important;' : 'color: rgb(75 85 99) !important;'}"
 							>
 								<span class="mr-3">{item.icon}</span>
 								{item.label}
@@ -95,9 +97,10 @@ const adminItems = [
 									<a
 										href={item.href}
 									class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors
-										{$page.url.pathname === item.href
+										{$page.url.pathname === item.href || ($page.url.pathname.startsWith(item.href) && item.href !== '/admin')
 										? 'bg-indigo-100 text-indigo-700'
 										: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}"
+									style="text-decoration: none; {$page.url.pathname === item.href || ($page.url.pathname.startsWith(item.href) && item.href !== '/admin') ? 'color: rgb(67 56 202) !important;' : 'color: rgb(75 85 99) !important;'}"
 									>
 										<span class="mr-3">{item.icon}</span>
 										{item.label}

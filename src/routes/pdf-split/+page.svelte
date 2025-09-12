@@ -325,7 +325,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="max-w-7xl mx-auto">
+<div class="max-w-8xl mx-auto">
 	<div class="bg-white rounded-lg shadow-md p-6">
 		<h1 class="text-2xl font-bold text-gray-900 mb-6">PDF拆分</h1>
 		

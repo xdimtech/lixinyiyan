@@ -109,12 +109,13 @@
 	<title>任务列表 - 立心翻译</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto">
+<div class="max-w-8xl mx-auto">
 	<div class="flex justify-between items-center mb-6">
 		<h1 class="text-2xl font-bold text-gray-900">任务列表</h1>
 		<a
 			href="/upload"
 			class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+			style="color: white !important;"
 		>
 			新建任务
 		</a>
