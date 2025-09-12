@@ -199,7 +199,7 @@
 	<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
 		<!-- 系统提示词设置 -->
 		<div class="lg:col-span-1">
-			<div class="bg-white rounded-lg shadow-sm p-4 h-fit">
+			<div class="bg-white rounded-lg shadow-sm p-4 flex flex-col" style="height: 500px;">
 				<h3 class="text-lg font-medium text-gray-900 mb-4">系统提示词</h3>
 				
 				<!-- 预设选项 -->
@@ -221,7 +221,7 @@
 				</div>
 
 				<!-- 自定义提示词 -->
-				<div>
+				<div class="flex-1 flex flex-col">
 					<label for="system-prompt" class="block text-sm font-medium text-gray-700 mb-2">
 						自定义提示词
 					</label>
@@ -229,8 +229,7 @@
 						id="system-prompt"
 						bind:value={systemPrompt}
 						placeholder={defaultSystemPrompt}
-						rows="6"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+						class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
 					></textarea>
 				</div>
 			</div>
