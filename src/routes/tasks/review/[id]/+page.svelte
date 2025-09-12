@@ -20,6 +20,11 @@
 	let editingTranslation = false;
 	let editedTranslationText = '';
 	let saving = false;
+	
+	// 图片放大状态
+	let showImageModal = false;
+	let modalImageUrl = '';
+	let modalPageNum = 0;
 
 	// 选择页面
 	const selectPage = (index: number) => {
@@ -67,6 +72,20 @@
 	$: if (selectedPage && !editingTranslation) {
 		editedTranslationText = selectedPage.translateText || '';
 	}
+	
+	// 显示图片放大模态框
+	const showImageZoom = (imageUrl: string, pageNum: number) => {
+		modalImageUrl = imageUrl;
+		modalPageNum = pageNum;
+		showImageModal = true;
+	};
+	
+	// 关闭图片放大模态框
+	const closeImageModal = () => {
+		showImageModal = false;
+		modalImageUrl = '';
+		modalPageNum = 0;
+	};
 </script>
 
 <svelte:head>
@@ -119,7 +138,7 @@
 							tabindex="0"
 						>
 							<!-- 页面缩略图 -->
-							<div class="aspect-[3/4] bg-gray-100 flex items-center justify-center">
+							<div class="aspect-[3/4] bg-gray-100 flex items-center justify-center relative group">
 								{#if page.imageUrl}
 									<img
 										src={page.imageUrl}
@@ -127,6 +146,18 @@
 										class="max-w-full max-h-full object-contain"
 										loading="lazy"
 									/>
+									<!-- 放大图标 -->
+									<button
+										type="button"
+										on:click|stopPropagation={() => showImageZoom(page.imageUrl, page.pageNum)}
+										class="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-opacity-70"
+										title="放大查看"
+										aria-label="放大查看第{page.pageNum}页"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+										</svg>
+									</button>
 								{:else}
 									<div class="text-gray-400">
 										第{page.pageNum}页
@@ -171,72 +202,61 @@
 					</h2>
 				</div>
 
-				<!-- 内容区域 -->
-				<div class="flex-1 overflow-y-auto p-6">
-					<div class="space-y-6">
-						<!-- 原图展示 -->
-						<div class="bg-white rounded-lg border border-gray-200 p-4">
-							<h3 class="text-lg font-medium text-gray-900 mb-3">原图</h3>
-							<div class="flex justify-center">
-								{#if selectedPage.imageUrl}
-									<img
-										src={selectedPage.imageUrl}
-										alt="第{selectedPage.pageNum}页原图"
-										class="max-w-full max-h-96 object-contain border border-gray-200 rounded-lg"
-									/>
+				<!-- 内容区域 - 左右两栏布局 -->
+				<div class="flex-1 flex overflow-hidden">
+					<!-- 左栏：OCR结果 -->
+					<div class="flex-1 flex flex-col border-r border-gray-200">
+						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+							<h3 class="text-lg font-medium text-gray-900">OCR识别结果</h3>
+						</div>
+						<div class="flex-1 overflow-y-auto p-4">
+							<div class="bg-white rounded-lg border border-gray-200 p-4 h-full">
+								{#if selectedPage.ocrText}
+									<pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed h-full overflow-y-auto">{selectedPage.ocrText}</pre>
 								{:else}
-									<div class="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-										图片加载失败
+									<div class="text-gray-400 italic flex items-center justify-center h-full">
+										无OCR数据
 									</div>
 								{/if}
 							</div>
 						</div>
+					</div>
 
-						<!-- OCR结果 -->
-						<div class="bg-white rounded-lg border border-gray-200 p-4">
-							<h3 class="text-lg font-medium text-gray-900 mb-3">OCR识别结果</h3>
-							<div class="bg-gray-50 rounded-lg p-4">
-								{#if selectedPage.ocrText}
-									<pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed">{selectedPage.ocrText}</pre>
-								{:else}
-									<div class="text-gray-400 italic">无OCR数据</div>
-								{/if}
-							</div>
+					<!-- 右栏：翻译结果 -->
+					<div class="flex-1 flex flex-col">
+						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+							<h3 class="text-lg font-medium text-gray-900">
+								{data.task.parseType === 'translate' ? '翻译结果' : '翻译区域'}
+							</h3>
+							{#if data.task.parseType === 'translate' && !editingTranslation}
+								<button
+									type="button"
+									on:click={startEditTranslation}
+									class="bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 text-sm"
+								>
+									编辑翻译
+								</button>
+							{/if}
 						</div>
-
-						<!-- 翻译结果 -->
-						{#if data.task.parseType === 'translate'}
-							<div class="bg-white rounded-lg border border-gray-200 p-4">
-								<div class="flex items-center justify-between mb-3">
-									<h3 class="text-lg font-medium text-gray-900">翻译结果</h3>
-									{#if !editingTranslation}
-										<button
-											type="button"
-											on:click={startEditTranslation}
-											class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm"
-										>
-											编辑翻译
-										</button>
-									{/if}
-								</div>
-
+						<div class="flex-1 overflow-y-auto p-4">
+							{#if data.task.parseType === 'translate'}
 								{#if editingTranslation}
 									<!-- 编辑模式 -->
 									<form 
 										method="POST" 
 										action="?/saveTranslation" 
 										use:enhance={saveTranslation}
-										class="space-y-4"
+										class="h-full flex flex-col"
 									>
 										<input type="hidden" name="pageNum" value={selectedPage.pageNum} />
 										<textarea
 											name="translationText"
 											bind:value={editedTranslationText}
 											placeholder="请输入翻译内容..."
-											class="w-full h-48 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-relaxed resize-none"
+											class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-relaxed resize-none"
 											required
 										></textarea>
-										<div class="flex items-center space-x-3">
+										<div class="flex items-center space-x-3 mt-4">
 											<button
 												type="submit"
 												disabled={saving}
@@ -256,16 +276,26 @@
 									</form>
 								{:else}
 									<!-- 展示模式 -->
-									<div class="bg-gray-50 rounded-lg p-4">
+									<div class="bg-white rounded-lg border border-gray-200 p-4 h-full">
 										{#if selectedPage.translateText}
-											<pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed">{selectedPage.translateText}</pre>
+											<pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed h-full overflow-y-auto">{selectedPage.translateText}</pre>
 										{:else}
-											<div class="text-gray-400 italic">暂无翻译结果，点击"编辑翻译"添加翻译</div>
+											<div class="text-gray-400 italic flex items-center justify-center h-full">
+												暂无翻译结果，点击"编辑翻译"添加翻译
+											</div>
 										{/if}
 									</div>
 								{/if}
-							</div>
-						{/if}
+							{:else}
+								<!-- 仅OCR模式 -->
+								<div class="bg-gray-100 rounded-lg border border-gray-200 p-4 h-full flex items-center justify-center">
+									<div class="text-gray-500 italic text-center">
+										<div class="text-lg mb-2">当前任务为仅识别模式</div>
+										<div class="text-sm">不包含翻译功能</div>
+									</div>
+								</div>
+							{/if}
+						</div>
 					</div>
 				</div>
 			{:else}
@@ -280,6 +310,52 @@
 		</div>
 	</div>
 </div>
+
+<!-- 图片放大模态框 -->
+{#if showImageModal}
+	<div 
+		class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+		on:click={closeImageModal}
+		on:keydown={(e: KeyboardEvent) => e.key === 'Escape' && closeImageModal()}
+		role="dialog"
+		aria-modal="true"
+		tabindex="-1"
+	>
+		<div class="relative max-w-full max-h-full p-4">
+			<!-- 关闭按钮 -->
+			<button
+				type="button"
+				on:click={closeImageModal}
+				class="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 z-10"
+				title="关闭"
+				aria-label="关闭图片放大视图"
+			>
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+				</svg>
+			</button>
+			
+			<!-- 页面标题 -->
+			<div class="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+				第 {modalPageNum} 页
+			</div>
+			
+			<!-- 放大的图片 -->
+			<button
+				type="button"
+				class="max-w-full max-h-full"
+				on:click|stopPropagation
+				aria-label="图片内容区域"
+			>
+				<img
+					src={modalImageUrl}
+					alt="第{modalPageNum}页放大图"
+					class="max-w-full max-h-full object-contain rounded-lg"
+				/>
+			</button>
+		</div>
+	</div>
+{/if}
 
 <style>
 	/* 确保滚动条样式 */
