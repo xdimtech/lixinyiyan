@@ -13,68 +13,45 @@ export const load: PageServerLoad = async (event) => {
 		throw redirect(302, '/login');
 	}
 
-	const url = new URL(event.request.url);
-	const usernameFilter = url.searchParams.get('username') || '';
-
 	try {
-		// 构建查询条件
-		let whereCondition;
-		if (usernameFilter) {
-			// 如果有用户名筛选，需要 join 用户表
-			const tasks = await db
-				.select({
-					id: table.metaParseTask.id,
-					userId: table.metaParseTask.userId,
-					parseType: table.metaParseTask.parseType,
-					fileName: table.metaParseTask.fileName,
-					filePath: table.metaParseTask.filePath,
-					pageNum: table.metaParseTask.pageNum,
-					status: table.metaParseTask.status,
-					createdAt: table.metaParseTask.createdAt,
-					updatedAt: table.metaParseTask.updatedAt,
-					username: table.user.username
-				})
-				.from(table.metaParseTask)
-				.innerJoin(table.user, eq(table.metaParseTask.userId, table.user.id))
-				.where(like(table.user.username, `%${usernameFilter}%`))
-				.orderBy(desc(table.metaParseTask.createdAt));
-			
-			return {
-				tasks,
-				currentUser: event.locals.user,
-				usernameFilter
-			};
-		} else {
-			// 没有筛选条件，获取所有任务
-			const tasks = await db
-				.select({
-					id: table.metaParseTask.id,
-					userId: table.metaParseTask.userId,
-					parseType: table.metaParseTask.parseType,
-					fileName: table.metaParseTask.fileName,
-					filePath: table.metaParseTask.filePath,
-					pageNum: table.metaParseTask.pageNum,
-					status: table.metaParseTask.status,
-					createdAt: table.metaParseTask.createdAt,
-					updatedAt: table.metaParseTask.updatedAt,
-					username: table.user.username
-				})
-				.from(table.metaParseTask)
-				.innerJoin(table.user, eq(table.metaParseTask.userId, table.user.id))
-				.orderBy(desc(table.metaParseTask.createdAt));
+		// 获取所有用户信息用于下拉菜单
+		const users = await db
+			.select({
+				id: table.user.id,
+				username: table.user.username
+			})
+			.from(table.user)
+			.orderBy(table.user.username);
 
-			return {
-				tasks,
-				currentUser: event.locals.user,
-				usernameFilter
-			};
-		}
+		// 默认获取所有任务
+		const tasks = await db
+			.select({
+				id: table.metaParseTask.id,
+				userId: table.metaParseTask.userId,
+				parseType: table.metaParseTask.parseType,
+				fileName: table.metaParseTask.fileName,
+				filePath: table.metaParseTask.filePath,
+				pageNum: table.metaParseTask.pageNum,
+				status: table.metaParseTask.status,
+				createdAt: table.metaParseTask.createdAt,
+				updatedAt: table.metaParseTask.updatedAt,
+				username: table.user.username
+			})
+			.from(table.metaParseTask)
+			.innerJoin(table.user, eq(table.metaParseTask.userId, table.user.id))
+			.orderBy(desc(table.metaParseTask.createdAt));
+
+		return {
+			tasks,
+			currentUser: event.locals.user,
+			users
+		};
 	} catch (error) {
 		console.error('获取任务列表失败:', error);
 		return {
 			tasks: [],
 			currentUser: event.locals.user,
-			usernameFilter,
+			users: [],
 			error: '获取任务列表失败'
 		};
 	}

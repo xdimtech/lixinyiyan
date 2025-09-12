@@ -2,6 +2,9 @@
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { getUsersWithTaskCount, type UserWithTaskCount } from '$lib/api/users';
+	import { filterTasks, type Task } from '$lib/api/tasks';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -20,20 +23,56 @@
 		'translate': '识别并翻译'
 	};
 
-	let usernameFilter = data.usernameFilter || '';
+	let selectedUserId = '';
+	let filteredTasks: Task[] = data.tasks; // 筛选后的任务列表
+	let isFiltering = false; // 筛选加载状态
+	let userStats: UserWithTaskCount[] = [];
+	let loadingStats = false;
+	let showUserStats = false;
 
-	const handleFilter = () => {
-		const params = new URLSearchParams();
-		if (usernameFilter.trim()) {
-			params.set('username', usernameFilter.trim());
+	// 使用POST请求筛选任务
+	const handleFilter = async () => {
+		isFiltering = true;
+		try {
+			if (selectedUserId.trim()) {
+				// 筛选指定用户的任务
+				filteredTasks = await filterTasks({ userId: selectedUserId });
+			} else {
+				// 显示所有任务
+				filteredTasks = await filterTasks({});
+			}
+		} catch (error) {
+			console.error('筛选任务失败:', error);
+			alert('筛选任务失败，请稍后重试');
+		} finally {
+			isFiltering = false;
 		}
-		goto(`/tasks?${params.toString()}`);
+	};
+
+	// 清除筛选
+	const clearFilter = async () => {
+		selectedUserId = '';
+		await handleFilter();
 	};
 
 	const formatDate = (dateString: string | Date) => {
 		const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
 		return date.toLocaleString('zh-CN');
 	};
+
+	// 加载用户任务统计
+	const loadUserStats = async () => {
+		loadingStats = true;
+		try {
+			userStats = await getUsersWithTaskCount();
+			showUserStats = true;
+		} catch (error) {
+			console.error('加载用户统计失败:', error);
+		} finally {
+			loadingStats = false;
+		}
+	};
+
 </script>
 
 <svelte:head>
@@ -58,28 +97,36 @@
 				<label for="username-filter" class="block text-sm font-medium text-gray-700 mb-1">
 					按用户名筛选
 				</label>
-				<input
+				<select
 					id="username-filter"
-					type="text"
-					bind:value={usernameFilter}
-					placeholder="输入用户名..."
-					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-				/>
+					bind:value={selectedUserId}
+					on:change={handleFilter}
+					disabled={isFiltering}
+					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+				>
+					<option value="">-- 选择用户名 --</option>
+					{#each data.users as user}
+						<option value={user.id}>{user.username}</option>
+					{/each}
+				</select>
 			</div>
 			<div class="flex space-x-2">
 				<button
 					type="button"
-					on:click={handleFilter}
-					class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+					on:click={clearFilter}
+					disabled={isFiltering}
+					class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 disabled:bg-gray-200"
 				>
-					筛选
+					{isFiltering ? '清除中...' : '清除'}
 				</button>
+				<!-- 用户统计按钮 -->
 				<button
 					type="button"
-					on:click={() => { usernameFilter = ''; handleFilter(); }}
-					class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+					on:click={loadUserStats}
+					disabled={loadingStats}
+					class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:bg-purple-300"
 				>
-					清除
+					{loadingStats ? '加载中...' : '用户统计'}
 				</button>
 			</div>
 		</div>
@@ -98,9 +145,36 @@
 		</div>
 	{/if}
 
+	<!-- 用户统计显示 -->
+	{#if showUserStats && userStats.length > 0}
+		<div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-lg font-medium text-gray-900">用户任务统计</h3>
+				<button
+					type="button"
+					on:click={() => showUserStats = false}
+					class="text-gray-400 hover:text-gray-600"
+				>
+					✕
+				</button>
+			</div>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				{#each userStats as stat}
+					<div class="bg-gray-50 p-3 rounded-lg">
+						<div class="flex justify-between items-center">
+							<span class="text-sm font-medium text-gray-900">{stat.username}</span>
+							<span class="text-lg font-bold text-indigo-600">{stat.taskCount}</span>
+						</div>
+						<div class="text-xs text-gray-500">个任务</div>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<!-- 任务列表 -->
 	<div class="bg-white shadow-sm rounded-lg overflow-hidden">
-		{#if data.tasks.length === 0}
+		{#if filteredTasks.length === 0}
 			<div class="text-center py-12">
 				<div class="text-gray-500 text-lg">暂无任务记录</div>
 				<a
@@ -142,7 +216,7 @@
 						</tr>
 					</thead>
 					<tbody class="bg-white divide-y divide-gray-200">
-						{#each data.tasks as task}
+						{#each filteredTasks as task}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 									#{task.id}
@@ -202,30 +276,37 @@
 	</div>
 
 	<!-- 统计信息 -->
-	{#if data.tasks.length > 0}
+	{#if filteredTasks.length > 0}
 		<div class="mt-6 bg-gray-50 rounded-lg p-4">
-			<h3 class="text-lg font-medium text-gray-900 mb-2">统计信息</h3>
+			<h3 class="text-lg font-medium text-gray-900 mb-2">
+				统计信息 
+				{#if selectedUserId}
+					<span class="text-sm text-gray-500">
+						(已筛选: {data.users.find(u => u.id === selectedUserId)?.username || '未知用户'})
+					</span>
+				{/if}
+			</h3>
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 				<div>
 					<span class="text-gray-600">总任务数:</span>
-					<span class="font-semibold text-gray-900">{data.tasks.length}</span>
+					<span class="font-semibold text-gray-900">{filteredTasks.length}</span>
 				</div>
 				<div>
 					<span class="text-gray-600">已完成:</span>
 					<span class="font-semibold text-green-600">
-						{data.tasks.filter(t => t.status === 2).length}
+						{filteredTasks.filter(t => t.status === 2).length}
 					</span>
 				</div>
 				<div>
 					<span class="text-gray-600">处理中:</span>
 					<span class="font-semibold text-blue-600">
-						{data.tasks.filter(t => t.status === 1).length}
+						{filteredTasks.filter(t => t.status === 1).length}
 					</span>
 				</div>
 				<div>
 					<span class="text-gray-600">等待中:</span>
 					<span class="font-semibold text-yellow-600">
-						{data.tasks.filter(t => t.status === 0).length}
+						{filteredTasks.filter(t => t.status === 0).length}
 					</span>
 				</div>
 			</div>
