@@ -86,18 +86,11 @@ export const actions: Actions = {
 			});
 
 			const resp_message = chatResponse.choices[0].message as any;
-			console.log("full response:", resp_message);
-
 			const response = resp_message.content;
-			console.log("chat response:", response);
-
 			// 思考推理
 			const reasoningContent = resp_message?.reasoning_content;
-			console.log("reasoning content:", reasoningContent);
-
 			// 使用统计
 			const usage = chatResponse.usage;
-			console.log("usage:", usage);
 			
 			return {
 				success: true,
