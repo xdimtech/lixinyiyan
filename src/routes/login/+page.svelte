@@ -12,6 +12,17 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<div>
+			<!-- 系统名称 -->
+			<div class="text-center mb-8">
+				<h1 class="text-2xl font-bold text-gray-900 mb-2">
+					立心译言
+				</h1>
+				<p class="text-lg text-gray-600 font-medium">
+					智能翻译管理系统
+				</p>
+				<div class="mt-4 w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 mx-auto rounded-full"></div>
+			</div>
+			
 			<h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
 				登录您的账户
 			</h2>
@@ -24,28 +35,34 @@
 		</div>
 
 		<form class="mt-8 space-y-6" method="POST" action="?/login" use:enhance>
-			<div class="rounded-md shadow-sm -space-y-px">
-				<div>
-					<label for="username" class="sr-only">用户名</label>
-					<input
-						id="username"
-						name="username"
-						type="text"
-						required
-						class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-						placeholder="用户名"
-					/>
+			<div class="space-y-4">
+				<div class="relative group">
+					<label for="username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+					<div class="relative">
+						<input
+							id="username"
+							name="username"
+							type="text"
+							required
+							class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ease-in-out hover:border-gray-400 bg-white shadow-sm"
+							placeholder="请输入用户名"
+						/>
+						<div class="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-focus-within:opacity-20 transition-opacity duration-200 pointer-events-none"></div>
+					</div>
 				</div>
-				<div>
-					<label for="password" class="sr-only">密码</label>
-					<input
-						id="password"
-						name="password"
-						type="password"
-						required
-						class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-						placeholder="密码"
-					/>
+				<div class="relative group">
+					<label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+					<div class="relative">
+						<input
+							id="password"
+							name="password"
+							type="password"
+							required
+							class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ease-in-out hover:border-gray-400 bg-white shadow-sm"
+							placeholder="请输入密码"
+						/>
+						<div class="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-focus-within:opacity-20 transition-opacity duration-200 pointer-events-none"></div>
+					</div>
 				</div>
 			</div>
 
@@ -58,9 +75,10 @@
 			<div>
 				<button
 					type="submit"
-					class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+					class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
 				>
-					登录
+					<span class="relative">登录</span>
+					<div class="absolute inset-0 rounded-lg bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
 				</button>
 			</div>
 		</form>
