@@ -1,9 +1,11 @@
 import type { Handle } from '@sveltejs/kit';
 import * as auth from '$lib/server/auth';
 import { ensureDatabaseReady } from '$lib/server/db';
+import { promptProvider } from '$lib/server/prompt-provider';
 
-// 在服务启动时初始化数据库
+// 在服务启动时初始化数据库和提示词配置
 let dbInitialized = false;
+let promptsInitialized = false;
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	// 确保数据库已初始化（只在第一次请求时运行）
@@ -16,6 +18,17 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 		} catch (error) {
 			console.error('❌ 数据库初始化失败:', error);
 			// 继续运行，但可能会有数据库相关的问题
+		}
+	}
+
+	// 确保提示词配置已初始化（在数据库初始化后运行）
+	if (dbInitialized && !promptsInitialized) {
+		try {
+			await promptProvider.initialize();
+			promptsInitialized = true;
+		} catch (error) {
+			console.error('❌ 提示词配置初始化失败:', error);
+			// 继续运行，但提示词功能可能不可用
 		}
 	}
 

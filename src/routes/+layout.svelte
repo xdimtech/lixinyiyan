@@ -25,7 +25,8 @@ const navItems = [
 // 管理员菜单项
 const adminItems = [
 	{ href: '/admin', label: '系统管理', icon: '⚙️' },
-	{ href: '/admin/users', label: '用户管理', icon: '👥' }
+	{ href: '/admin/users', label: '用户管理', icon: '👥' },
+	{ href: '/admin/prompts', label: '提示词管理', icon: '📝' }
 ];
 </script>
 

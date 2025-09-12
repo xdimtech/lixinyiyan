@@ -1,8 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
-import * as table from '$lib/server/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { promptProvider } from '$lib/server/prompt-provider';
 
 export const GET: RequestHandler = async (event) => {
 	// 检查用户是否已登录
@@ -16,25 +14,12 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	try {
-		// 获取最新的提示词配置
-		const prompts = await db
-			.select({
-				id: table.metaPrompt.id,
-				prompt1: table.metaPrompt.prompt1,
-				prompt2: table.metaPrompt.prompt2,
-				operator: table.metaPrompt.operator,
-				operatorUsername: table.user.username,
-				createdAt: table.metaPrompt.createdAt,
-				updatedAt: table.metaPrompt.updatedAt
-			})
-			.from(table.metaPrompt)
-			.innerJoin(table.user, eq(table.metaPrompt.operator, table.user.id))
-			.orderBy(desc(table.metaPrompt.updatedAt))
-			.limit(1);
+		// 从内存缓存获取提示词配置
+		const config = promptProvider.getConfig();
 
 		return json({
 			success: true,
-			data: prompts[0] || null
+			data: config
 		});
 	} catch (error) {
 		console.error('获取提示词失败:', error);
@@ -74,17 +59,17 @@ export const POST: RequestHandler = async (event) => {
 			}, { status: 400 });
 		}
 
-		// 插入新的提示词配置
-		const result = await db.insert(table.metaPrompt).values({
-			prompt1: prompt1.trim(),
-			prompt2: prompt2.trim(),
-			operator: event.locals.user.id
-		});
+		// 使用 provider 更新提示词配置
+		const updatedConfig = await promptProvider.updateConfig(
+			prompt1,
+			prompt2,
+			event.locals.user.id
+		);
 
 		return json({
 			success: true,
 			message: '提示词保存成功',
-			data: { id: result[0].insertId }
+			data: updatedConfig
 		});
 	} catch (error) {
 		console.error('保存提示词失败:', error);
@@ -124,19 +109,17 @@ export const PUT: RequestHandler = async (event) => {
 			}, { status: 400 });
 		}
 
-		// 更新提示词配置
-		await db
-			.update(table.metaPrompt)
-			.set({
-				prompt1: prompt1.trim(),
-				prompt2: prompt2.trim(),
-				operator: event.locals.user.id
-			})
-			.where(eq(table.metaPrompt.id, id));
+		// 使用 provider 更新提示词配置
+		const updatedConfig = await promptProvider.updateConfig(
+			prompt1,
+			prompt2,
+			event.locals.user.id
+		);
 
 		return json({
 			success: true,
-			message: '提示词更新成功'
+			message: '提示词更新成功',
+			data: updatedConfig
 		});
 	} catch (error) {
 		console.error('更新提示词失败:', error);

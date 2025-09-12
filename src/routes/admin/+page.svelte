@@ -141,42 +141,6 @@
 		</div>
 	</div>
 
-		<!-- 管理功能 -->
-		<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 mb-8">
-			<h2 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">管理功能</h2>
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				<a
-					href="/admin/users"
-					class="block p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-200 hover:border-emerald-300 transition-all duration-200 hover:shadow-lg transform hover:scale-105"
-				>
-					<div class="flex items-center">
-						<div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center mr-4">
-							<div class="text-white text-lg font-bold">👥</div>
-						</div>
-						<div>
-							<h3 class="font-semibold text-gray-900">用户管理</h3>
-							<p class="text-sm text-gray-600">管理系统用户</p>
-						</div>
-					</div>
-				</a>
-
-				<a
-					href="/admin/prompts"
-					class="block p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200 rounded-xl hover:from-amber-100 hover:to-amber-200 hover:border-amber-300 transition-all duration-200 hover:shadow-lg transform hover:scale-105"
-				>
-					<div class="flex items-center">
-						<div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center mr-4">
-							<div class="text-white text-lg font-bold">📝</div>
-						</div>
-						<div>
-							<h3 class="font-semibold text-gray-900">提示词管理</h3>
-							<p class="text-sm text-gray-600">配置OCR和翻译提示词</p>
-						</div>
-					</div>
-				</a>
-			</div>
-		</div>
-
 		<!-- 快捷链接 -->
 		<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6">
 			<h2 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">快捷操作</h2>

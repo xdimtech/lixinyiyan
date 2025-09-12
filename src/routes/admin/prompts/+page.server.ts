@@ -1,8 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { db } from '$lib/server/db';
-import * as table from '$lib/server/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { promptProvider } from '$lib/server/prompt-provider';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -15,24 +13,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	try {
-		// 获取最新的提示词配置
-		const prompts = await db
-			.select({
-				id: table.metaPrompt.id,
-				prompt1: table.metaPrompt.prompt1,
-				prompt2: table.metaPrompt.prompt2,
-				operator: table.metaPrompt.operator,
-				operatorUsername: table.user.username,
-				createdAt: table.metaPrompt.createdAt,
-				updatedAt: table.metaPrompt.updatedAt
-			})
-			.from(table.metaPrompt)
-			.innerJoin(table.user, eq(table.metaPrompt.operator, table.user.id))
-			.orderBy(desc(table.metaPrompt.updatedAt))
-			.limit(1);
+		// 从内存缓存获取提示词配置
+		const currentPrompts = promptProvider.getConfig();
 
 		return {
-			currentPrompts: prompts[0] || null
+			currentPrompts
 		};
 	} catch (err) {
 		console.error('加载提示词失败:', err);
@@ -73,12 +58,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			// 插入新的提示词配置
-			await db.insert(table.metaPrompt).values({
-				prompt1,
-				prompt2,
-				operator: locals.user.id
-			});
+			// 使用 provider 更新提示词配置
+			await promptProvider.updateConfig(prompt1, prompt2, locals.user.id);
 
 			return {
 				success: true,

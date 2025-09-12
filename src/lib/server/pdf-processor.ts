@@ -2,14 +2,16 @@ import { promises as fs } from 'fs';
 import { join, dirname, basename, extname } from 'path';
 import OpenAI from 'openai';
 import * as mupdf from 'mupdf';
+import { initializePathConfig } from '$lib/config/paths';
+import { promptProvider } from './prompt-provider';
 
 // 从PRD中的配置
-const OCR_API_URL = "http://127.0.0.1:8002/v1";
-const TRANSLATE_API_URL = "http://127.0.0.1:8003/v1";
-const DEFAULT_MODEL = "Qwen/Qwen2.5-VL-7B-Instruct";
-const TRANSLATE_MODEL = "Qwen/Qwen3-14B-FP8";
+const OCR_API_URL =  initializePathConfig().ocrEndpoint;
+const TRANSLATE_API_URL = initializePathConfig().translateEndpoint;
+const DEFAULT_MODEL = initializePathConfig().ocrModel;
+const TRANSLATE_MODEL = initializePathConfig().translateModel;
 
-const SYSTEM_PROMPT = `## Role
+const SYSTEM_PROMPT = promptProvider.getOcrPrompt() || `## Role
 You are a translation expert.
 ## Your Task
 - Identify the original and complete text content from the picture without summarizing, concluding, or translating, and do not discard any words.
@@ -18,7 +20,7 @@ You are a translation expert.
 ## Output Format
 Please output in TXT format.`;
 
-const TRANSLATE_SYSTEM_PROMPT = `# 角色
+const TRANSLATE_SYSTEM_PROMPT = promptProvider.getTranslatePrompt() || `# 角色
 您是一位民国时期的翻译专家，擅长将英文文本翻译为民国时期的表达风格。
 
 # 任务
