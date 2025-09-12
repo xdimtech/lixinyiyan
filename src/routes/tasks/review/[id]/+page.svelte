@@ -206,7 +206,7 @@
 				<div class="flex-1 flex overflow-hidden">
 					<!-- 左栏：OCR结果 -->
 					<div class="flex-1 flex flex-col border-r border-gray-200">
-						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200 h-14 flex items-center">
 							<h3 class="text-lg font-medium text-gray-900">OCR识别结果</h3>
 						</div>
 						<div class="flex-1 overflow-y-auto p-4">
@@ -224,18 +224,41 @@
 
 					<!-- 右栏：翻译结果 -->
 					<div class="flex-1 flex flex-col">
-						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200 h-14 flex items-center justify-between">
 							<h3 class="text-lg font-medium text-gray-900">
 								{data.task.parseType === 'translate' ? '翻译结果' : '翻译区域'}
 							</h3>
-							{#if data.task.parseType === 'translate' && !editingTranslation}
-								<button
-									type="button"
-									on:click={startEditTranslation}
-									class="bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 text-sm"
-								>
-									编辑翻译
-								</button>
+							{#if data.task.parseType === 'translate'}
+								<div class="flex items-center space-x-2">
+									{#if editingTranslation}
+										<!-- 编辑模式的按钮 -->
+										<button
+											type="submit"
+											form="translation-form"
+											disabled={saving}
+											class="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 disabled:bg-green-300 text-sm"
+										>
+											{saving ? '保存中...' : '保存翻译'}
+										</button>
+										<button
+											type="button"
+											on:click={cancelEdit}
+											disabled={saving}
+											class="bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-400 disabled:bg-gray-200 text-sm"
+										>
+											取消
+										</button>
+									{:else}
+										<!-- 非编辑模式的按钮 -->
+										<button
+											type="button"
+											on:click={startEditTranslation}
+											class="bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 text-sm"
+										>
+											编辑翻译
+										</button>
+									{/if}
+								</div>
 							{/if}
 						</div>
 						<div class="flex-1 overflow-y-auto p-4">
@@ -243,36 +266,20 @@
 								{#if editingTranslation}
 									<!-- 编辑模式 -->
 									<form 
+										id="translation-form"
 										method="POST" 
 										action="?/saveTranslation" 
 										use:enhance={saveTranslation}
-										class="h-full flex flex-col"
+										class="h-full"
 									>
 										<input type="hidden" name="pageNum" value={selectedPage.pageNum} />
 										<textarea
 											name="translationText"
 											bind:value={editedTranslationText}
 											placeholder="请输入翻译内容..."
-											class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-relaxed resize-none"
+											class="w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-relaxed resize-none"
 											required
 										></textarea>
-										<div class="flex items-center space-x-3 mt-4">
-											<button
-												type="submit"
-												disabled={saving}
-												class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-green-300 text-sm"
-											>
-												{saving ? '保存中...' : '保存翻译'}
-											</button>
-											<button
-												type="button"
-												on:click={cancelEdit}
-												disabled={saving}
-												class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 disabled:bg-gray-200 text-sm"
-											>
-												取消
-											</button>
-										</div>
 									</form>
 								{:else}
 									<!-- 展示模式 -->
