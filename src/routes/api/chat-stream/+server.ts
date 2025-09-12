@@ -107,10 +107,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 	messages.push(currentUserMessage);
 
-	// 调试日志
-	console.log('发送到模型的消息:', JSON.stringify(messages, null, 2));
-	console.log('是否包含图片:', !!image);
-
 	try {
 		// 创建一个ReadableStream来处理流式输出
 		const stream = new ReadableStream({
