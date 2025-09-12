@@ -43,6 +43,7 @@ export const metaOcrOutput = mysqlTable('meta_ocr_output', {
 	taskId: bigint('task_id', { mode: 'number' })
 		.notNull()
 		.references(() => metaParseTask.id),
+	pageNo: int('page_no').notNull(),
 	inputFilePath: varchar('input_file_path', { length: 500 }).notNull(),
 	outputTxtPath: varchar('output_txt_path', { length: 500 }),
 	status: int('status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
@@ -57,6 +58,7 @@ export const metaTranslateOutput = mysqlTable('meta_translate_output', {
 	taskId: bigint('task_id', { mode: 'number' })
 		.notNull()
 		.references(() => metaParseTask.id),
+	pageNo: int('page_no').notNull(),
 	inputFilePath: varchar('input_file_path', { length: 500 }).notNull(),
 	outputTxtPath: varchar('output_txt_path', { length: 500 }),
 	status: int('status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed

@@ -1,12 +1,14 @@
 CREATE TABLE `meta_ocr_output` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`task_id` bigint NOT NULL,
+	`page_no` int NOT NULL,
 	`input_file_path` varchar(500) NOT NULL,
 	`output_txt_path` varchar(500),
 	`status` int NOT NULL DEFAULT 0,
 	`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	`is_deleted` tinyint NOT NULL DEFAULT 0,
+	UNIQUE KEY `idx_task_id_page_no` (`task_id`, `page_no`),
 	CONSTRAINT `meta_ocr_output_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -37,12 +39,14 @@ CREATE TABLE `meta_prompt` (
 CREATE TABLE `meta_translate_output` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`task_id` bigint NOT NULL,
+	`page_no` int NOT NULL,
 	`input_file_path` varchar(500) NOT NULL,
 	`output_txt_path` varchar(500),
 	`status` int NOT NULL DEFAULT 0,
 	`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	`is_deleted` tinyint NOT NULL DEFAULT 0,
+	UNIQUE KEY `idx_task_id_page_no` (`task_id`, `page_no`),
 	CONSTRAINT `meta_translate_output_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint

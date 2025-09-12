@@ -367,12 +367,15 @@
 													下载
 												</button>
 											</form>
-											<a
-												href="/tasks/review/{task.id}"
-												class="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-											>
-												去审核
-											</a>
+											<!-- 只有任务创建者或管理员/经理才能审核 -->
+											{#if task.userId === data.currentUser?.id || data.currentUser?.role === 'admin' || data.currentUser?.role === 'manager'}
+												<a
+													href="/tasks/review/{task.id}"
+													class="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+												>
+													去审核
+												</a>
+											{/if}
 										{/if}
 										
 										{#if task.userId === data.currentUser?.id || data.currentUser?.role === 'admin'}

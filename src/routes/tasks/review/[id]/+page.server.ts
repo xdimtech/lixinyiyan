@@ -2,14 +2,14 @@ import { error, redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { ocrOutputDir, translateOutputDir, imagesOutputDir } from '$lib/config/paths';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const session = locals.session;
-	if (!session) {
+	if (!session || !locals.user) {
 		throw redirect(302, '/login');
 	}
 
@@ -46,6 +46,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			throw error(400, '只有已完成的任务才能进行审核');
 		}
 
+		// 权限检查：普通用户只能审核自己创建的任务，管理员和经理可以审核所有任务
+		if (task.userId !== locals.user.id && 
+			locals.user.role !== 'admin' && 
+			locals.user.role !== 'manager') {
+			throw error(403, '权限不足：您只能审核自己创建的任务');
+		}
+
 		// 获取OCR结果
 		const ocrResults = await db
 			.select()
@@ -57,6 +64,22 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			.select()
 			.from(table.metaTranslateOutput)
 			.where(eq(table.metaTranslateOutput.taskId, taskId));
+
+		// 构建OCR结果的页码映射，便于快速查找
+		const ocrResultsMap = new Map();
+		ocrResults.forEach(ocr => {
+			if (ocr.pageNo) {
+				ocrResultsMap.set(ocr.pageNo, ocr);
+			}
+		});
+
+		// 构建翻译结果的页码映射，便于快速查找
+		const translateResultsMap = new Map();
+		translateResults.forEach(trans => {
+			if (trans.pageNo) {
+				translateResultsMap.set(trans.pageNo, trans);
+			}
+		});
 
 		// 构建页面数据
 		const pages: Array<{
@@ -87,21 +110,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		for (let i = 1; i <= (task.pageNum || 0); i++) {
 			const pageNumStr = i.toString().padStart(3, '0');
 			
-			// 更精确的OCR结果匹配：确保完全匹配页码
-			const ocrResult = ocrResults.find(ocr => {
-				if (!ocr.inputFilePath) return false;
-				// 精确匹配：确保是page_XXX.png格式，避免page_001匹配到page_0011
-				const pagePattern = new RegExp(`page_${pageNumStr}\\.(png|jpg|jpeg)$`, 'i');
-				return pagePattern.test(ocr.inputFilePath);
-			});
+			// 通过页码直接查找OCR结果
+			const ocrResult = ocrResultsMap.get(i);
 			
-			// 更精确的翻译结果匹配：通过OCR输出路径匹配
-			const translateResult = translateResults.find(trans => {
-				if (!trans.inputFilePath) return false;
-				// 翻译的输入文件应该是OCR的输出文件
-				const ocrPattern = new RegExp(`page_${pageNumStr}\\.txt$`, 'i');
-				return ocrPattern.test(trans.inputFilePath);
-			});
+			// 通过页码直接查找翻译结果
+			const translateResult = translateResultsMap.get(i);
 
 			// 读取OCR文本
 			let ocrText = '';
@@ -170,10 +183,41 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 export const actions: Actions = {
-	saveTranslation: async ({ request, params }) => {
+	saveTranslation: async ({ request, params, locals }) => {
+		// 检查登录状态
+		if (!locals.session || !locals.user) {
+			return fail(401, { message: '请先登录' });
+		}
+
 		const taskId = parseInt(params.id);
 		if (!taskId || isNaN(taskId)) {
 			return fail(400, { message: '无效的任务ID' });
+		}
+
+		// 获取任务信息进行权限检查
+		const [task] = await db
+			.select({
+				userId: table.metaParseTask.userId,
+				status: table.metaParseTask.status
+			})
+			.from(table.metaParseTask)
+			.where(eq(table.metaParseTask.id, taskId))
+			.limit(1);
+
+		if (!task) {
+			return fail(404, { message: '任务不存在' });
+		}
+
+		// 权限检查：普通用户只能编辑自己创建的任务，管理员和经理可以编辑所有任务
+		if (task.userId !== locals.user.id && 
+			locals.user.role !== 'admin' && 
+			locals.user.role !== 'manager') {
+			return fail(403, { message: '权限不足：您只能编辑自己创建的任务' });
+		}
+
+		// 检查任务状态
+		if (task.status !== 2) {
+			return fail(400, { message: '只有已完成的任务才能进行审核编辑' });
 		}
 
 		const formData = await request.formData();
@@ -189,17 +233,18 @@ export const actions: Actions = {
 		}
 
 		try {
-			// 查找对应的翻译记录
+			// 通过 taskId + pageNo 精确查找翻译记录
 			const pageNumStr = pageNum.toString().padStart(3, '0');
-			const translateResults = await db
+			const [translateResult] = await db
 				.select()
 				.from(table.metaTranslateOutput)
-				.where(eq(table.metaTranslateOutput.taskId, taskId));
-
-			// 查找匹配页面的翻译记录
-			const translateResult = translateResults.find(trans => 
-				trans.outputTxtPath?.includes(`page_${pageNumStr}`)
-			);
+				.where(
+					and(
+						eq(table.metaTranslateOutput.taskId, taskId),
+						eq(table.metaTranslateOutput.pageNo, pageNum)
+					)
+				)
+				.limit(1);
 
 			if (translateResult?.outputTxtPath) {
 				// 保存翻译内容到文件
@@ -220,6 +265,7 @@ export const actions: Actions = {
 				// 在数据库中创建记录
 				await db.insert(table.metaTranslateOutput).values({
 					taskId: taskId,
+					pageNo: pageNum,
 					inputFilePath: join(ocrOutputDir, `task_${taskId}`, `page_${pageNumStr}.txt`),
 					outputTxtPath: outputPath,
 					status: 2 // finished
