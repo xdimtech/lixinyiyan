@@ -46,7 +46,7 @@ const adminItems = [
 	<!-- 已登录用户的主界面 -->
 	<div class="min-h-screen bg-gray-50">
 		<!-- 顶部导航栏 -->
-		<nav class="bg-white shadow-sm border-b">
+		<nav class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-50">
 			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div class="flex justify-between h-16">
 					<div class="flex items-center">
@@ -67,9 +67,9 @@ const adminItems = [
 			</div>
 		</nav>
 
-		<div class="flex">
+		<div class="flex h-screen pt-16">
 			<!-- 侧边栏 -->
-			<aside class="w-64 bg-white shadow-sm min-h-screen">
+			<aside class="w-64 bg-white shadow-sm h-full overflow-y-auto">
 				<nav class="mt-8">
 					<div class="px-4 space-y-2">
 						{#each navItems as item}
@@ -113,7 +113,7 @@ const adminItems = [
 			</aside>
 
 			<!-- 主内容区域 -->
-			<main class="flex-1 p-8">
+			<main class="flex-1 p-8 h-full overflow-y-auto">
 				{@render children()}
 			</main>
 		</div>
