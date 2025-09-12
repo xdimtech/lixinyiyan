@@ -108,38 +108,36 @@
 		</div>
 
 		<!-- 下部：上传配置 -->
-		<div class="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100 relative flex-1">
-			<!-- 主体突出装饰 -->
-			<div class="absolute -inset-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl blur-xl"></div>
+		<div class="bg-white rounded-3xl shadow-lg p-8 border border-gray-200 relative flex-1">
 			<div class="relative bg-white rounded-3xl h-full">
-			<div class="flex items-center mb-6">
-				<div class="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-3">
-					<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-					</svg>
-				</div>
-				<h2 class="text-2xl font-bold text-gray-900">上传配置</h2>
-			</div>
-		
-		<form 
-			method="POST" 
-			action="?/upload" 
-			enctype="multipart/form-data"
-			use:enhance={handleSubmit}
-			class="space-y-4 h-full flex flex-col"
-		>
-			<!-- 文件选择区域 -->
-			<div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">
-				<div class="flex items-center mb-4">
-					<div class="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2">
-						<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+				<div class="flex items-center mb-6">
+					<div class="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center mr-3">
+						<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
 						</svg>
 					</div>
-					<label for="file" class="text-base font-bold text-gray-900">
-						选择PDF文件
-					</label>
+					<h2 class="text-2xl font-bold text-gray-900">上传配置</h2>
 				</div>
+			
+			<form 
+				method="POST" 
+				action="?/upload" 
+				enctype="multipart/form-data"
+				use:enhance={handleSubmit}
+				class="space-y-6 h-full flex flex-col"
+			>
+				<!-- 文件选择区域 -->
+				<div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+					<div class="flex items-center mb-4">
+						<div class="w-5 h-5 bg-gray-600 rounded-lg flex items-center justify-center mr-3">
+							<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+							</svg>
+						</div>
+						<label for="file" class="text-base font-semibold text-gray-900">
+							选择PDF文件
+						</label>
+					</div>
 				
 				<div class="relative group">
 					<input
@@ -149,7 +147,7 @@
 						accept=".pdf"
 						required
 						on:change={handleFileChange}
-						class="block w-full h-12 text-sm text-gray-500 bg-white border-2 border-gray-300 border-dashed rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 file:mr-4 file:py-0 file:px-4 file:h-12 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-50 file:to-blue-100 file:text-blue-700 hover:file:from-blue-100 hover:file:to-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+						class="block w-full h-12 text-sm text-gray-500 bg-white border-2 border-gray-300 border-dashed rounded-xl cursor-pointer hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all duration-200 file:mr-4 file:py-0 file:px-4 file:h-12 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
 						disabled={uploading}
 					/>
 					<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -165,10 +163,10 @@
 				</div>
 				
 				{#if selectedFile}
-					<div class="mt-3 p-3 bg-white rounded-xl border border-green-200 shadow-sm">
+					<div class="mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
 						<div class="flex items-center">
-							<div class="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-								<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<div class="w-6 h-6 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+								<svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 								</svg>
 							</div>
@@ -182,39 +180,39 @@
 			</div>
 
 			<!-- 处理类型选择 -->
-			<div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-100 flex-1">
+			<div class="bg-gray-50 rounded-2xl p-6 border border-gray-200 flex-1">
 				<div class="flex items-center mb-4">
-					<div class="w-5 h-5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-2">
+					<div class="w-5 h-5 bg-gray-600 rounded-lg flex items-center justify-center mr-3">
 						<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 						</svg>
 					</div>
-					<legend class="text-base font-bold text-gray-900">
+					<legend class="text-base font-semibold text-gray-900">
 						处理类型
 					</legend>
 				</div>
 				
 				<div class="space-y-3">
 					<label class="group cursor-pointer">
-						<div class="flex items-start p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-purple-300 transition-all duration-200 group-hover:shadow-md">
+						<div class="flex items-start p-4 rounded-xl border-2 transition-all duration-200 group-hover:shadow-sm {parseType === 'only_ocr' ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-gray-200 hover:border-gray-400'}">
 							<input
 								type="radio"
 								name="parseType"
 								value="only_ocr"
 								bind:group={parseType}
-								class="mt-1 mr-3 text-purple-600 focus:ring-purple-500 w-4 h-4"
+								class="mt-1 mr-3 text-blue-600 focus:ring-blue-500 w-4 h-4"
 								disabled={uploading}
 							/>
 							<div class="flex-1">
 								<div class="flex items-center mb-1">
-									<div class="w-6 h-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mr-2">
-										<svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="w-6 h-6 bg-gray-100 rounded-lg flex items-center justify-center mr-2">
+										<svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 										</svg>
 									</div>
-									<div class="font-bold text-gray-900">仅识别文本</div>
+									<div class="font-semibold text-gray-900">仅识别文本</div>
 								</div>
 								<div class="text-gray-600 text-sm leading-relaxed">
 									使用先进OCR技术，精确识别PDF中的文字内容
@@ -224,23 +222,23 @@
 					</label>
 					
 					<label class="group cursor-pointer">
-						<div class="flex items-start p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-purple-300 transition-all duration-200 group-hover:shadow-md">
+						<div class="flex items-start p-4 rounded-xl border-2 transition-all duration-200 group-hover:shadow-sm {parseType === 'translate' ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-gray-200 hover:border-gray-400'}">
 							<input
 								type="radio"
 								name="parseType"
 								value="translate"
 								bind:group={parseType}
-								class="mt-1 mr-3 text-purple-600 focus:ring-purple-500 w-4 h-4"
+								class="mt-1 mr-3 text-blue-600 focus:ring-blue-500 w-4 h-4"
 								disabled={uploading}
 							/>
 							<div class="flex-1">
 								<div class="flex items-center mb-1">
-									<div class="w-6 h-6 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center mr-2">
-										<svg class="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="w-6 h-6 bg-gray-100 rounded-lg flex items-center justify-center mr-2">
+										<svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
 										</svg>
 									</div>
-									<div class="font-bold text-gray-900">识别并翻译</div>
+									<div class="font-semibold text-gray-900">识别并翻译</div>
 								</div>
 								<div class="text-gray-600 text-sm leading-relaxed">
 									先识别文字，再转换为典雅的民国时期表达风格
@@ -252,11 +250,11 @@
 			</div>
 
 			<!-- 提交按钮 -->
-			<div class="flex justify-center mt-auto pt-2">
+			<div class="flex justify-center mt-auto pt-6 pb-4">
 				<button
 					type="submit"
 					disabled={!selectedFile || uploading}
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+					class="inline-flex items-center px-8 py-3 bg-gray-800 font-semibold rounded-xl hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
 					style="color: white !important; text-decoration: none;"
 				>
 					{#if uploading}
