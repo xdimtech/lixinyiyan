@@ -144,5 +144,40 @@ export const actions = {
 			console.error('PDF export error:', error);
 			return fail(500, { message: 'PDF导出失败，请重试' });
 		}
+	},
+
+	downloadImages: async ({ request }) => {
+		const formData = await request.formData();
+		const taskId = formData.get('taskId') as string;
+		const selectedPages = formData.get('selectedPages') as string;
+
+		console.log('Download images request received:', { taskId, selectedPages }); // 调试日志
+
+		if (!taskId || !selectedPages) {
+			console.log('Missing parameters:', { taskId: !!taskId, selectedPages: !!selectedPages });
+			return fail(400, { message: '参数不完整' });
+		}
+
+		try {
+			const pages = JSON.parse(selectedPages);
+			console.log('Parsed pages for image download:', pages); // 调试日志
+			
+			// 验证图片目录是否存在
+			const imagesDir = path.join(outputDir, taskId);
+			if (!fs.existsSync(imagesDir)) {
+				console.log('Images directory not found:', imagesDir);
+				return fail(404, { message: '图片目录不存在' });
+			}
+			
+			return {
+				success: true,
+				downloadUrl: `/api/download/images/${taskId}`,
+				selectedPages: pages,
+				message: '准备下载图片'
+			};
+		} catch (error) {
+			console.error('Download images error:', error);
+			return fail(500, { message: '图片下载失败，请重试' });
+		}
 	}
 } satisfies Actions;

@@ -8,6 +8,7 @@
 	let uploading = false;
 	let splitting = false;
 	let exporting = false;
+	let downloadingImages = false;
 	let currentStep = 1; // 1: 上传, 2: 显示图片, 3: 完成
 	
 	// 当前任务数据
@@ -166,6 +167,8 @@
 
 	let exportSuccess = false;
 	let exportMessage = '';
+	let downloadImagesSuccess = false;
+	let downloadImagesMessage = '';
 
 	// 准备导出选中的页面
 	let selectedPagesForExport: number[] = [];
@@ -228,12 +231,81 @@
 		};
 	};
 
+	// 准备下载选中图片
+	const prepareDownloadImages = async () => {
+		if (!taskData?.images) return;
+		
+		const selectedPages = taskData.images
+			.filter(img => img.selected)
+			.map(img => img.id);
+			
+		if (selectedPages.length === 0) {
+			alert('请至少选择一页');
+			return;
+		}
+		
+		console.log('Selected pages for image download:', selectedPages); // 调试日志
+		
+		downloadingImages = true;
+		downloadImagesSuccess = false;
+		downloadImagesMessage = '';
+		
+		try {
+			// 直接调用API下载图片
+			const response = await fetch(`/api/download/images/${taskData.taskId}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					selectedPages: selectedPages
+				})
+			});
+			
+			if (response.ok) {
+				// 获取文件名从响应头
+				const contentDisposition = response.headers.get('Content-Disposition');
+				let filename = `pdf-images-${taskData.taskId}.zip`;
+				if (contentDisposition) {
+					const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+					if (filenameMatch) {
+						filename = filenameMatch[1];
+					}
+				}
+				
+				// 创建下载链接
+				const blob = await response.blob();
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = filename;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				window.URL.revokeObjectURL(url);
+				
+				downloadImagesSuccess = true;
+				downloadImagesMessage = `成功下载包含 ${selectedPages.length} 张图片的ZIP文件`;
+			} else {
+				const errorData = await response.json().catch(() => ({}));
+				downloadImagesMessage = errorData.message || '图片下载失败，请重试';
+			}
+		} catch (error) {
+			console.error('Download images error:', error);
+			downloadImagesMessage = '图片下载失败，请重试';
+		} finally {
+			downloadingImages = false;
+		}
+	};
+
 	const resetFlow = () => {
 		selectedFile = null;
 		taskData = null;
 		currentStep = 1;
 		exportSuccess = false;
 		exportMessage = '';
+		downloadImagesSuccess = false;
+		downloadImagesMessage = '';
 		const fileInput = document.getElementById('file') as HTMLInputElement;
 		if (fileInput) fileInput.value = '';
 	};
@@ -373,7 +445,7 @@
 					</div>
 
 					<!-- 批量操作 -->
-					<div class="flex space-x-4">
+					<div class="flex flex-wrap gap-4">
 						<button
 							on:click={selectAllPages}
 							class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -385,6 +457,24 @@
 							class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
 						>
 							全不选
+						</button>
+						<button
+							on:click={prepareDownloadImages}
+							disabled={selectedCount === 0 || downloadingImages}
+							class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+						>
+							{#if downloadingImages}
+								<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								下载中...
+							{:else}
+								<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+								</svg>
+								下载选中图片 ({selectedCount}张)
+							{/if}
 						</button>
 						<button
 							on:click={prepareExport}
@@ -465,39 +555,72 @@
 					</div>
 
 					<!-- 导出状态消息 -->
-					{#if exportMessage}
-						<div class="mt-6">
-							{#if exportSuccess}
-								<div class="bg-green-50 border border-green-200 rounded-lg p-4">
-									<div class="flex items-start">
-										<svg class="w-5 h-5 text-green-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-										</svg>
-										<div class="flex-1">
-											<h4 class="text-sm font-medium text-green-900 mb-1">导出成功</h4>
-											<p class="text-sm text-green-700">{exportMessage}</p>
-											<p class="text-xs text-green-600 mt-1">PDF文件已开始下载，请查看浏览器下载文件夹</p>
-										</div>
-										<button
-											on:click={resetFlow}
-											class="ml-4 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-										>
-											处理新文件
-										</button>
-									</div>
-								</div>
-							{:else}
-								<div class="bg-red-50 border border-red-200 rounded-lg p-4">
-									<div class="flex items-start">
-										<svg class="w-5 h-5 text-red-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-											<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-										</svg>
-										<div>
-											<h4 class="text-sm font-medium text-red-900 mb-1">导出失败</h4>
-											<p class="text-sm text-red-700">{exportMessage}</p>
+					{#if exportMessage || downloadImagesMessage}
+						<div class="mt-6 space-y-4">
+							<!-- PDF导出状态 -->
+							{#if exportMessage}
+								{#if exportSuccess}
+									<div class="bg-green-50 border border-green-200 rounded-lg p-4">
+										<div class="flex items-start">
+											<svg class="w-5 h-5 text-green-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+											</svg>
+											<div class="flex-1">
+												<h4 class="text-sm font-medium text-green-900 mb-1">PDF导出成功</h4>
+												<p class="text-sm text-green-700">{exportMessage}</p>
+												<p class="text-xs text-green-600 mt-1">PDF文件已开始下载，请查看浏览器下载文件夹</p>
+											</div>
+											<button
+												on:click={resetFlow}
+												class="ml-4 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
+											>
+												处理新文件
+											</button>
 										</div>
 									</div>
-								</div>
+								{:else}
+									<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+										<div class="flex items-start">
+											<svg class="w-5 h-5 text-red-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+											</svg>
+											<div>
+												<h4 class="text-sm font-medium text-red-900 mb-1">PDF导出失败</h4>
+												<p class="text-sm text-red-700">{exportMessage}</p>
+											</div>
+										</div>
+									</div>
+								{/if}
+							{/if}
+
+							<!-- 图片下载状态 -->
+							{#if downloadImagesMessage}
+								{#if downloadImagesSuccess}
+									<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+										<div class="flex items-start">
+											<svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+											</svg>
+											<div class="flex-1">
+												<h4 class="text-sm font-medium text-blue-900 mb-1">图片下载成功</h4>
+												<p class="text-sm text-blue-700">{downloadImagesMessage}</p>
+												<p class="text-xs text-blue-600 mt-1">ZIP文件已开始下载，请查看浏览器下载文件夹</p>
+											</div>
+										</div>
+									</div>
+								{:else}
+									<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+										<div class="flex items-start">
+											<svg class="w-5 h-5 text-red-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+											</svg>
+											<div>
+												<h4 class="text-sm font-medium text-red-900 mb-1">图片下载失败</h4>
+												<p class="text-sm text-red-700">{downloadImagesMessage}</p>
+											</div>
+										</div>
+									</div>
+								{/if}
 							{/if}
 						</div>
 					{/if}
@@ -626,7 +749,8 @@
 					<li>• 支持上传PDF格式文件，最大文件大小50MB</li>
 					<li>• 系统会自动将PDF按页拆分为高质量图片预览</li>
 					<li>• 默认选中所有页面，您可以点击图片取消选择不需要的页面</li>
-					<li>• 导出的PDF只包含您选择的页面，保持原始质量和格式</li>
+					<li>• <strong>下载选中图片</strong>：将选中页面打包为ZIP文件下载（JPG格式）</li>
+					<li>• <strong>确认导出</strong>：将选中页面重新合并为新的PDF文件</li>
 					<li>• 使用PDF-lib技术确保完整的页面提取和重组</li>
 				</ul>
 			</div>
