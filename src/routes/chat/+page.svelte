@@ -23,22 +23,18 @@
 	let chatContainer: HTMLElement;
 
 	// 默认系统提示词
-	const defaultSystemPrompt = '您是一位智能助手，擅长回答各种问题并提供有用的信息。请用友好、专业的语气回复用户。';
-
+	const defaultSystemPrompt = `您是一位民国时期的翻译专家，擅长将现代中文转换为民国时期的表达风格。翻译时请注意：对于称呼使用"先生"、"女士"。对于日期使用民国纪年。语言风格采用文言文与白话文的交叉使用。遇到人名如果没有合适的翻译请保留
+	原文翻译完毕后不要输出任何注释与背景补充，请把注释与背景补充放到你的思考过程中。`;
 	// 预设的系统提示词选项
 	const presetPrompts = [
 		{
-			name: '默认助手',
+			name: '民国翻译专家', 
 			prompt: defaultSystemPrompt
 		},
 		{
-			name: '民国翻译专家', 
-			prompt: '您是一位民国时期的翻译专家，擅长将现代中文转换为民国时期的表达风格。翻译时请注意：对于称呼使用"先生"、"女士"；对于日期使用民国纪年；语言风格采用文言文与白话文的交叉使用。'
+			name: '对话助手',
+			prompt: '您是一位智能助手，擅长回答各种问题并提供有用的信息。请用友好、专业的语气回复用户。'
 		},
-		{
-			name: '文档分析师',
-			prompt: '您是一位专业的文档分析师，擅长分析各种文档内容，提供结构化的总结和见解。请用专业、客观的语气分析用户提供的内容。'
-		}
 	];
 
 	// 处理表单提交结果 - 现在在handleSubmit中处理
@@ -259,7 +255,7 @@
 						{#each chatHistory as chat}
 							<!-- 用户消息 -->
 							<div class="flex justify-end">
-								<div class="max-w-xs lg:max-w-md bg-indigo-600 text-white rounded-lg px-4 py-2">
+								<div class="max-w-xs lg:max-w-md bg-blue-50 text-gray-800 border border-blue-200 rounded-lg px-4 py-2">
 									<div class="text-sm">{chat.user}</div>
 								</div>
 							</div>
