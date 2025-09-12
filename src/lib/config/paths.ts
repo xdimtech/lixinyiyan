@@ -36,9 +36,9 @@ const pathConfigs: Record<Environment, PathConfig> = {
   development: {
     pdfUploadDir: 'uploads/files',
     pdfOutputDir: 'uploads/pdf-split',
-    ocrOutputDir: '/tmp/output_dir',
-    translateOutputDir: '/tmp/output_dir',
-    imagesOutputDir: '/tmp/output_dir',
+    ocrOutputDir: 'uploads/ocr',
+    translateOutputDir: 'uploads/translate',
+    imagesOutputDir: 'uploads/images',
     logDir: 'logs',
     tempDir: 'temp'
   },

@@ -9,6 +9,21 @@
 	export let data: PageData;
 	export let form: ActionData;
 
+	// 消息自动消失
+	let messageTimeout: NodeJS.Timeout | null = null;
+	let showMessage = false;
+	
+	// 监听form变化，自动显示和隐藏消息
+	$: if (form?.message) {
+		showMessage = true;
+		if (messageTimeout) {
+			clearTimeout(messageTimeout);
+		}
+		messageTimeout = setTimeout(() => {
+			showMessage = false;
+		}, 3000); // 3秒后自动消失
+	}
+
 	// 状态映射
 	const statusMap: Record<number, { label: string; class: string }> = {
 		0: { label: '等待中', class: 'bg-yellow-100 text-yellow-800' },
@@ -184,9 +199,16 @@
 	</div>
 
 	<!-- 消息显示 -->
-	{#if form?.message}
-		<div class="mb-4 p-4 rounded-md {form.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}">
+	{#if form?.message && showMessage}
+		<div class="mb-4 p-4 rounded-md {form.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'} relative transition-opacity duration-300">
 			{form.message}
+			<button 
+				type="button" 
+				on:click={() => showMessage = false}
+				class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+			>
+				✕
+			</button>
 		</div>
 	{/if}
 
@@ -312,12 +334,22 @@
 									{/if}
 									
 									{#if task.userId === data.currentUser?.id || data.currentUser?.role === 'admin'}
-										<form method="POST" action="?/delete" use:enhance class="inline">
+										<form method="POST" action="?/delete" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
+											if (!confirm('确定要删除这个任务吗？')) {
+												cancel();
+												return;
+											}
+											return async ({ result }) => {
+												// 删除成功后重新加载任务列表
+												if (result.type === 'success') {
+													await handleFilter(currentPage);
+												}
+											};
+										}} class="inline">
 											<input type="hidden" name="taskId" value={task.id} />
 											<button
 												type="submit"
 												class="text-red-600 hover:text-red-900"
-												on:click={() => confirm('确定要删除这个任务吗？')}
 											>
 												删除
 											</button>

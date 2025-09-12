@@ -10,6 +10,25 @@ import { initializePathConfig, ocrOutputDir, translateOutputDir, imagesOutputDir
 const pathConfig = initializePathConfig();
 
 /**
+ * 递归复制目录
+ */
+async function copyDirectory(srcDir: string, destDir: string): Promise<void> {
+    await fs.mkdir(destDir, { recursive: true });
+    const entries = await fs.readdir(srcDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+        const srcPath = join(srcDir, entry.name);
+        const destPath = join(destDir, entry.name);
+        
+        if (entry.isDirectory()) {
+            await copyDirectory(srcPath, destPath);
+        } else {
+            await fs.copyFile(srcPath, destPath);
+        }
+    }
+}
+
+/**
  * 处理PDF解析任务
  */
 export async function processTask(taskId: number): Promise<void> {
@@ -69,6 +88,7 @@ export async function processTask(taskId: number): Promise<void> {
 
                 // 如果需要翻译
                 if (task.parseType === 'translate') {
+                    console.log(`开始翻译第 ${i + 1} 页: ${ocrOutputPath}`);
                     const translateText = await callTranslateApi(ocrText);
                     const translateOutputPath = join(outputTranslateDir, `page_${(i + 1).toString().padStart(3, '0')}.txt`);
                     await saveTextToFile(translateText, translateOutputPath);
@@ -139,7 +159,15 @@ export async function processTask(taskId: number): Promise<void> {
         try {
             const ocrFiles = await fs.readdir(outputOCRDir);
             for (const file of ocrFiles) {
-                await fs.copyFile(join(outputOCRDir, file), join(tempOcrDir, file));
+                const srcPath = join(outputOCRDir, file);
+                const destPath = join(tempOcrDir, file);
+                const stat = await fs.stat(srcPath);
+                if (stat.isFile()) {
+                    await fs.copyFile(srcPath, destPath);
+                } else if (stat.isDirectory()) {
+                    // 如果是目录，递归复制
+                    await copyDirectory(srcPath, destPath);
+                }
             }
         } catch (e) {
             console.warn('复制OCR文件失败:', e);
@@ -152,7 +180,15 @@ export async function processTask(taskId: number): Promise<void> {
             try {
                 const translateFiles = await fs.readdir(outputTranslateDir);
                 for (const file of translateFiles) {
-                    await fs.copyFile(join(outputTranslateDir, file), join(tempTranslateDir, file));
+                    const srcPath = join(outputTranslateDir, file);
+                    const destPath = join(tempTranslateDir, file);
+                    const stat = await fs.stat(srcPath);
+                    if (stat.isFile()) {
+                        await fs.copyFile(srcPath, destPath);
+                    } else if (stat.isDirectory()) {
+                        // 如果是目录，递归复制
+                        await copyDirectory(srcPath, destPath);
+                    }
                 }
             } catch (e) {
                 console.warn('复制翻译文件失败:', e);
