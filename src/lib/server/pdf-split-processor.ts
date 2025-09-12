@@ -164,7 +164,14 @@ export async function createPdfFromPages(originalPdfPath: string, selectedPageId
         
         // 回退策略：复制原始PDF
         console.log('🔄 回退到复制原始PDF');
-        const outputPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'exported.pdf');
+        // 生成回退文件名，如果有原文件名则使用，否则使用默认
+        let fallbackFileName = 'exported.pdf';
+        if (originalFileName) {
+            const shortUUID = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+            const originalName = parse(originalFileName).name;
+            fallbackFileName = `${originalName}_${shortUUID}.pdf`;
+        }
+        const outputPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, fallbackFileName);
         const originalData = await fs.readFile(originalPdfPath);
         await fs.writeFile(outputPath, originalData);
         
