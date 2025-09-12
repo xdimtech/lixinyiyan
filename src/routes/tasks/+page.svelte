@@ -78,9 +78,16 @@
 		handleFilter(1);
 	});
 
-	const formatDate = (dateString: string | Date) => {
-		const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-		return date.toLocaleString('zh-CN');
+	const formatDate = (dateString: string) => {
+		// 后端现在返回 'YYYY-MM-DD HH:mm:ss' 格式的字符串，已经是中国时区
+		if (dateString.includes('T') || dateString.includes('Z')) {
+			// ISO格式
+			return new Date(dateString).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+		} else {
+			// 'YYYY-MM-DD HH:mm:ss' 格式，添加时区信息后格式化显示
+			const date = new Date(dateString + ' +08:00');
+			return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+		}
 	};
 
 	// 加载用户任务统计

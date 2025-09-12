@@ -26,7 +26,7 @@ export async function processTask(taskId: number): Promise<void> {
         // 更新任务状态为处理中
         await db
             .update(table.metaParseTask)
-            .set({ status: 1, updatedAt: new Date() })
+            .set({ status: 1 })
             .where(eq(table.metaParseTask.id, taskId));
 
         console.log(`开始处理任务 ${taskId}: ${task.fileName}`);
@@ -140,7 +140,7 @@ export async function processTask(taskId: number): Promise<void> {
         // 4. 更新任务状态为完成
         await db
             .update(table.metaParseTask)
-            .set({ status: 2, updatedAt: new Date() })
+            .set({ status: 2 })
             .where(eq(table.metaParseTask.id, taskId));
 
         console.log(`任务 ${taskId} 处理完成`);
@@ -151,7 +151,7 @@ export async function processTask(taskId: number): Promise<void> {
         // 更新任务状态为失败
         await db
             .update(table.metaParseTask)
-            .set({ status: 3, updatedAt: new Date() })
+            .set({ status: 3 })
             .where(eq(table.metaParseTask.id, taskId));
         
         throw error;

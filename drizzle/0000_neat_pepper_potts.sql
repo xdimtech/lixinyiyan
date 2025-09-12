@@ -6,6 +6,7 @@ CREATE TABLE `meta_ocr_output` (
 	`status` int NOT NULL DEFAULT 0,
 	`created_at` datetime NOT NULL DEFAULT '2025-09-09 12:44:11.848',
 	`updated_at` datetime NOT NULL DEFAULT '2025-09-09 12:44:11.848',
+	`is_deleted` tinyint(1) NOT NULL DEFAULT 0,
 	CONSTRAINT `meta_ocr_output_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint

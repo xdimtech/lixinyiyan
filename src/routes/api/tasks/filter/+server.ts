@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import { eq, desc, count, and } from 'drizzle-orm';
+import { eq, desc, count, and, sql } from 'drizzle-orm';
 
 interface FilterRequest {
 	userId?: string;
@@ -66,8 +66,8 @@ export const POST: RequestHandler = async (event) => {
 				filePath: table.metaParseTask.filePath,
 				pageNum: table.metaParseTask.pageNum,
 				status: table.metaParseTask.status,
-				createdAt: table.metaParseTask.createdAt,
-				updatedAt: table.metaParseTask.updatedAt,
+				createdAt: sql<string>`DATE_FORMAT(${table.metaParseTask.createdAt}, '%Y-%m-%d %H:%i:%s')`,
+				updatedAt: sql<string>`DATE_FORMAT(${table.metaParseTask.updatedAt}, '%Y-%m-%d %H:%i:%s')`,
 				username: table.user.username
 			})
 			.from(table.metaParseTask)

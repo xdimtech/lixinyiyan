@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { redirect, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import { eq, desc, like, and } from 'drizzle-orm';
+import { eq, desc, like, and, sql } from 'drizzle-orm';
 import archiver from 'archiver';
 import { createReadStream } from 'fs';
 import { readdir, stat } from 'fs/promises';
@@ -33,8 +33,8 @@ export const load: PageServerLoad = async (event) => {
 				filePath: table.metaParseTask.filePath,
 				pageNum: table.metaParseTask.pageNum,
 				status: table.metaParseTask.status,
-				createdAt: table.metaParseTask.createdAt,
-				updatedAt: table.metaParseTask.updatedAt,
+				createdAt: sql<string>`DATE_FORMAT(${table.metaParseTask.createdAt}, '%Y-%m-%d %H:%i:%s')`,
+				updatedAt: sql<string>`DATE_FORMAT(${table.metaParseTask.updatedAt}, '%Y-%m-%d %H:%i:%s')`,
 				username: table.user.username
 			})
 			.from(table.metaParseTask)

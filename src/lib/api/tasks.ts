@@ -7,8 +7,8 @@ export interface Task {
 	filePath: string;
 	pageNum: number | null;
 	status: number;
-	createdAt: string | Date;
-	updatedAt: string | Date;
+	createdAt: string; // 现在统一返回字符串格式
+	updatedAt: string; // 现在统一返回字符串格式
 	username: string;
 }
 

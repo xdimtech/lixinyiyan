@@ -1,11 +1,15 @@
-import { mysqlTable, serial, int, varchar, datetime, text } from 'drizzle-orm/mysql-core';
+import { mysqlTable, serial, int, varchar, datetime, text, tinyint, bigint } from 'drizzle-orm/mysql-core';
+import { sql } from 'drizzle-orm';
 
 // 用户表 - 扩展原有用户表
 export const user = mysqlTable('user', {
 	id: varchar('id', { length: 255 }).primaryKey(),
 	username: varchar('username', { length: 32 }).notNull().unique(),
 	passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-	role: varchar('role', { length: 20 }).notNull().default('member') // member | manager | admin
+	role: varchar('role', { length: 20 }).notNull().default('member'), // member | manager | admin
+	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`),
+	isDeleted: tinyint('is_deleted').notNull().default(0)
 });
 
 // Session表保持不变
@@ -28,34 +32,37 @@ export const metaParseTask = mysqlTable('meta_parse_task', {
 	filePath: varchar('file_path', { length: 500 }).notNull(),
 	pageNum: int('page_num').notNull(),
 	status: int('status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
-	createdAt: datetime('created_at').notNull().default(new Date()),
-	updatedAt: datetime('updated_at').notNull().default(new Date())
+	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`),
+	isDeleted: tinyint('is_deleted').notNull().default(0)
 });
 
 // 图片OCR表
 export const metaOcrOutput = mysqlTable('meta_ocr_output', {
 	id: serial('id').primaryKey(),
-	taskId: int('task_id')
+	taskId: bigint('task_id', { mode: 'number' })
 		.notNull()
 		.references(() => metaParseTask.id),
 	inputFilePath: varchar('input_file_path', { length: 500 }).notNull(),
 	outputTxtPath: varchar('output_txt_path', { length: 500 }),
 	status: int('status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
-	createdAt: datetime('created_at').notNull().default(new Date()),
-	updatedAt: datetime('updated_at').notNull().default(new Date())
+	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`),
+	isDeleted: tinyint('is_deleted').notNull().default(0)
 });
 
 // TXT翻译表
 export const metaTranslateOutput = mysqlTable('meta_translate_output', {
 	id: serial('id').primaryKey(),
-	taskId: int('task_id')
+	taskId: bigint('task_id', { mode: 'number' })
 		.notNull()
 		.references(() => metaParseTask.id),
 	inputFilePath: varchar('input_file_path', { length: 500 }).notNull(),
 	outputTxtPath: varchar('output_txt_path', { length: 500 }),
 	status: int('status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
-	createdAt: datetime('created_at').notNull().default(new Date()),
-	updatedAt: datetime('updated_at').notNull().default(new Date())
+	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`),
+	isDeleted: tinyint('is_deleted').notNull().default(0)
 });
 
 export type Session = typeof session.$inferSelect;

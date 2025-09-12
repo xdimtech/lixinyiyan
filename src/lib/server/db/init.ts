@@ -9,24 +9,44 @@ const DATABASE_NAME = 'lixin';
  * 获取数据库配置（不包含数据库名）
  */
 function getDatabaseConfig() {
-    const dbUrl = process.env.DATABASE_URL || 'mysql://root:123456@localhost:3306';
+    const baseUrl = process.env.DATABASE_URL || 'mysql://root:123456@localhost:3306';
+    const dbTimezone = process.env.DB_TIMEZONE || '+08:00';
     
     try {
-        const url = new URL(dbUrl);
+        const url = new URL(baseUrl);
+        // 构建包含所有必要参数的URL
+        const params = new URLSearchParams({
+            charset: 'utf8mb4',
+            timezone: dbTimezone, // MySQL2驱动的正确时区参数
+            multipleStatements: 'true'
+        });
+        
+        const fullUrl = `${baseUrl}?${params.toString()}`;
+        
         return {
             host: url.hostname,
             port: parseInt(url.port) || 3306,
             user: url.username || 'root',
-            password: url.password || '123456'
+            password: url.password || '123456',
+            uri: fullUrl
         };
     } catch (error) {
-        console.error('无效的 DATABASE_URL 格式:', dbUrl);
+        console.error('无效的 DATABASE_URL 格式:', baseUrl);
         // 默认配置
+        const params = new URLSearchParams({
+            charset: 'utf8mb4',
+            timezone: dbTimezone,
+            multipleStatements: 'true'
+        });
+        
+        const fullUrl = `mysql://root:123456@localhost:3306?${params.toString()}`;
+        
         return {
             host: 'localhost',
             port: 3306,
             user: 'root',
-            password: '123456'
+            password: '123456',
+            uri: fullUrl
         };
     }
 }
@@ -103,6 +123,9 @@ async function runMigrations(db: any): Promise<void> {
         console.error('数据库迁移失败，尝试手动创建表:', error);
         await createTablesManually(db);
     }
+    
+    // 检查并添加缺失的字段
+    await addMissingColumns(db);
 }
 
 /**
@@ -118,7 +141,10 @@ async function createTablesManually(connection: any): Promise<void> {
                 id VARCHAR(255) PRIMARY KEY,
                 username VARCHAR(32) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
-                role VARCHAR(20) NOT NULL DEFAULT 'member'
+                role VARCHAR(20) NOT NULL DEFAULT 'member',
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0
             )
         `);
         
@@ -144,6 +170,7 @@ async function createTablesManually(connection: any): Promise<void> {
                 status INT NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES user(id)
             )
         `);
@@ -158,6 +185,7 @@ async function createTablesManually(connection: any): Promise<void> {
                 status INT NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 FOREIGN KEY (task_id) REFERENCES meta_parse_task(id)
             )
         `);
@@ -172,6 +200,7 @@ async function createTablesManually(connection: any): Promise<void> {
                 status INT NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 FOREIGN KEY (task_id) REFERENCES meta_parse_task(id)
             )
         `);
@@ -179,6 +208,66 @@ async function createTablesManually(connection: any): Promise<void> {
         console.log('✅ 数据表手动创建完成');
     } catch (error) {
         console.error('手动创建表失败:', error);
+        throw error;
+    }
+}
+
+/**
+ * 检查并添加缺失的表字段
+ */
+async function addMissingColumns(connection: any): Promise<void> {
+    try {
+        console.log('🔄 检查并添加缺失的表字段...');
+
+        // 检查user表的字段
+        const userColumns = await connection.execute('SHOW COLUMNS FROM user');
+        const userColumnNames = userColumns[0].map((col: any) => col.Field);
+        
+        if (!userColumnNames.includes('created_at')) {
+            await connection.execute('ALTER TABLE user ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP');
+            console.log('✅ 已添加 user.created_at 字段');
+        }
+        
+        if (!userColumnNames.includes('updated_at')) {
+            await connection.execute('ALTER TABLE user ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+            console.log('✅ 已添加 user.updated_at 字段');
+        }
+        
+        if (!userColumnNames.includes('is_deleted')) {
+            await connection.execute('ALTER TABLE user ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0');
+            console.log('✅ 已添加 user.is_deleted 字段');
+        }
+
+        // 检查meta_parse_task表的字段
+        const taskColumns = await connection.execute('SHOW COLUMNS FROM meta_parse_task');
+        const taskColumnNames = taskColumns[0].map((col: any) => col.Field);
+        
+        if (!taskColumnNames.includes('is_deleted')) {
+            await connection.execute('ALTER TABLE meta_parse_task ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0');
+            console.log('✅ 已添加 meta_parse_task.is_deleted 字段');
+        }
+
+        // 检查meta_ocr_output表的字段
+        const ocrColumns = await connection.execute('SHOW COLUMNS FROM meta_ocr_output');
+        const ocrColumnNames = ocrColumns[0].map((col: any) => col.Field);
+        
+        if (!ocrColumnNames.includes('is_deleted')) {
+            await connection.execute('ALTER TABLE meta_ocr_output ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0');
+            console.log('✅ 已添加 meta_ocr_output.is_deleted 字段');
+        }
+
+        // 检查meta_translate_output表的字段
+        const translateColumns = await connection.execute('SHOW COLUMNS FROM meta_translate_output');
+        const translateColumnNames = translateColumns[0].map((col: any) => col.Field);
+        
+        if (!translateColumnNames.includes('is_deleted')) {
+            await connection.execute('ALTER TABLE meta_translate_output ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0');
+            console.log('✅ 已添加 meta_translate_output.is_deleted 字段');
+        }
+
+        console.log('✅ 表字段检查和更新完成');
+    } catch (error) {
+        console.error('添加缺失字段失败:', error);
         throw error;
     }
 }
@@ -235,7 +324,12 @@ export async function initializeDatabase(): Promise<void> {
     console.log(`📡 连接到数据库服务器: ${config.host}:${config.port}`);
     
     // 连接到MySQL服务器（不指定数据库）
-    const connection = await mysql.createConnection(config);
+    const connection = await mysql.createConnection({
+        host: config.host,
+        port: config.port,
+        user: config.user,
+        password: config.password
+    });
     
     try {
         // 检查并创建数据库
@@ -250,11 +344,9 @@ export async function initializeDatabase(): Promise<void> {
         // 关闭初始连接
         await connection.end();
         
-        // 连接到具体数据库
-        const dbConnection = await mysql.createConnection({
-            ...config,
-            database: DATABASE_NAME
-        });
+        // 连接到具体数据库，使用带时区的URL
+        const dbUrl = config.uri.replace(/\?/, `/${DATABASE_NAME}?`);
+        const dbConnection = await mysql.createConnection(dbUrl);
         
         const db = drizzle(dbConnection, { schema, mode: 'default' });
         
@@ -288,10 +380,8 @@ export async function initializeDatabase(): Promise<void> {
 export async function checkDatabaseConnection(): Promise<boolean> {
     try {
         const config = getDatabaseConfig();
-        const connection = await mysql.createConnection({
-            ...config,
-            database: DATABASE_NAME
-        });
+        const dbUrl = config.uri.replace(/\?/, `/${DATABASE_NAME}?`);
+        const connection = await mysql.createConnection(dbUrl);
         
         await connection.execute('SELECT 1');
         await connection.end();
