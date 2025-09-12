@@ -139,175 +139,177 @@
 	<title>用户管理 - 立心译言</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto">
-	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-2xl font-bold text-gray-900">用户管理</h1>
-		<a href="/admin" class="text-indigo-600 hover:text-indigo-500">← 返回管理面板</a>
-	</div>
-
-	<!-- 搜索和筛选 -->
-	<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-		<div class="flex flex-col md:flex-row gap-4">
-			<div class="flex-1">
-				<label for="search" class="block text-sm font-medium text-gray-700 mb-2">搜索用户</label>
-				<input
-					type="text"
-					id="search"
-					placeholder="输入用户名搜索..."
-					value={data.filters.search}
-					on:input={handleSearch}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-				/>
-			</div>
-			<div class="min-w-32">
-				<label for="pageSize" class="block text-sm font-medium text-gray-700 mb-2">每页显示</label>
-				<select
-					id="pageSize"
-					value={data.pagination.pageSize}
-					on:change={handlePageSizeChange}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-				>
-					{#each pageSizeOptions as size}
-						<option value={size}>{size} 条</option>
-					{/each}
-				</select>
-			</div>
-		</div>
-	</div>
-
-	<!-- 用户列表 -->
-	<div class="bg-white rounded-lg shadow-sm overflow-hidden">
-		<div class="px-6 py-4 border-b border-gray-200">
-			<h2 class="text-lg font-semibold text-gray-900">
-				用户列表 (共 {data.pagination.totalCount} 条)
-			</h2>
+<div class="min-h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="flex justify-between items-center mb-8">
+			<h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">用户管理</h1>
+			<a href="/admin" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105" style="color: white !important;">← 返回管理面板</a>
 		</div>
 
-		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-							<button
-								on:click={() => handleSort('username')}
-								class="flex items-center space-x-1 hover:text-gray-700"
-							>
-								<span>用户名</span>
-								<span class="text-sm">{getSortIcon('username')}</span>
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-							角色
-						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-							<button
-								on:click={() => handleSort('createdAt')}
-								class="flex items-center space-x-1 hover:text-gray-700"
-							>
-								<span>创建时间</span>
-								<span class="text-sm">{getSortIcon('createdAt')}</span>
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-							最后更新
-						</th>
-						<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-							操作
-						</th>
-					</tr>
-				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
-					{#each data.users as user}
-						<tr class="hover:bg-gray-50">
-							<td class="px-6 py-4 whitespace-nowrap">
-								<div class="text-sm font-medium text-gray-900">{user.username}</div>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 {getRoleInfo(user.role).color}">
-									{getRoleInfo(user.role).label}
-								</span>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-								{formatDate(user.createdAt)}
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-								{formatDate(user.updatedAt)}
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+		<!-- 搜索和筛选 -->
+		<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 mb-8">
+			<div class="flex flex-col md:flex-row gap-6">
+				<div class="flex-1">
+					<label for="search" class="block text-sm font-semibold text-gray-800 mb-3">搜索用户</label>
+					<input
+						type="text"
+						id="search"
+						placeholder="输入用户名搜索..."
+						value={data.filters.search}
+						on:input={handleSearch}
+						class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+					/>
+				</div>
+				<div class="min-w-40">
+					<label for="pageSize" class="block text-sm font-semibold text-gray-800 mb-3">每页显示</label>
+					<select
+						id="pageSize"
+						value={data.pagination.pageSize}
+						on:change={handlePageSizeChange}
+						class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+					>
+						{#each pageSizeOptions as size}
+							<option value={size}>{size} 条</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+		</div>
+
+		<!-- 用户列表 -->
+		<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 overflow-hidden">
+			<div class="px-6 py-5 border-b border-gray-200/50 bg-gradient-to-r from-indigo-50 to-purple-50">
+				<h2 class="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+					用户列表 (共 {data.pagination.totalCount} 条)
+				</h2>
+			</div>
+
+			<div class="overflow-x-auto">
+				<table class="min-w-full divide-y divide-gray-200/50">
+					<thead class="bg-gradient-to-r from-gray-50 to-indigo-50">
+						<tr>
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								<button
-									on:click={() => openRoleModal(user)}
-									class="text-indigo-600 hover:text-indigo-500"
+									on:click={() => handleSort('username')}
+									class="flex items-center space-x-2 hover:text-indigo-600 transition-colors duration-200"
 								>
-									修改角色
+									<span>用户名</span>
+									<span class="text-sm">{getSortIcon('username')}</span>
 								</button>
+							</th>
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+								角色
+							</th>
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								<button
-									on:click={() => openPasswordModal(user)}
-									class="text-yellow-600 hover:text-yellow-500"
+									on:click={() => handleSort('createdAt')}
+									class="flex items-center space-x-2 hover:text-indigo-600 transition-colors duration-200"
 								>
-									重置密码
+									<span>创建时间</span>
+									<span class="text-sm">{getSortIcon('createdAt')}</span>
 								</button>
-								{#if user.role === 'admin'}
-									<span class="text-gray-400 cursor-not-allowed" title="超级管理员不可删除">
-										删除
-									</span>
-								{:else}
-									<button
-										on:click={() => openDeleteModal(user)}
-										class="text-red-600 hover:text-red-500"
-									>
-										删除
-									</button>
-								{/if}
-							</td>
+							</th>
+							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+								最后更新
+							</th>
+							<th class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+								操作
+							</th>
 						</tr>
-					{/each}
+					</thead>
+					<tbody class="bg-white/50 divide-y divide-gray-200/30">
+						{#each data.users as user}
+							<tr class="hover:bg-indigo-50/50 transition-colors duration-200">
+								<td class="px-6 py-5 whitespace-nowrap">
+									<div class="text-sm font-semibold text-gray-900">{user.username}</div>
+								</td>
+								<td class="px-6 py-5 whitespace-nowrap">
+									<span class="inline-flex px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-gray-100 to-gray-200 {getRoleInfo(user.role).color} shadow-sm">
+										{getRoleInfo(user.role).label}
+									</span>
+								</td>
+								<td class="px-6 py-5 whitespace-nowrap text-sm text-gray-600">
+									{formatDate(user.createdAt)}
+								</td>
+								<td class="px-6 py-5 whitespace-nowrap text-sm text-gray-600">
+									{formatDate(user.updatedAt)}
+								</td>
+								<td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium space-x-3">
+									<button
+										on:click={() => openRoleModal(user)}
+										class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+									>
+										修改角色
+									</button>
+									<button
+										on:click={() => openPasswordModal(user)}
+										class="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-1.5 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+									>
+										重置密码
+									</button>
+									{#if user.role === 'admin'}
+										<span class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded-lg cursor-not-allowed text-xs font-medium" title="超级管理员不可删除">
+											删除
+										</span>
+									{:else}
+										<button
+											on:click={() => openDeleteModal(user)}
+											class="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+										>
+											删除
+										</button>
+									{/if}
+								</td>
+							</tr>
+						{/each}
 				</tbody>
 			</table>
 		</div>
 
-		<!-- 分页 -->
-		{#if data.pagination.totalPages > 1}
-			<div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-				<div class="text-sm text-gray-700">
-					显示第 {(data.pagination.page - 1) * data.pagination.pageSize + 1} 到 
-					{Math.min(data.pagination.page * data.pagination.pageSize, data.pagination.totalCount)} 条，
-					共 {data.pagination.totalCount} 条记录
+			<!-- 分页 -->
+			{#if data.pagination.totalPages > 1}
+				<div class="px-6 py-5 border-t border-gray-200/50 bg-gradient-to-r from-gray-50 to-indigo-50/30 flex items-center justify-between">
+					<div class="text-sm text-gray-700 font-medium">
+						显示第 {(data.pagination.page - 1) * data.pagination.pageSize + 1} 到 
+						{Math.min(data.pagination.page * data.pagination.pageSize, data.pagination.totalCount)} 条，
+						共 {data.pagination.totalCount} 条记录
+					</div>
+					<div class="flex space-x-2">
+						<button
+							on:click={() => handlePageChange(data.pagination.page - 1)}
+							disabled={!data.pagination.hasPrev}
+							class="px-4 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200 transition-all duration-200 font-medium shadow-sm"
+						>
+							上一页
+						</button>
+						
+						{#each Array.from({length: Math.min(5, data.pagination.totalPages)}, (_, i) => {
+							const start = Math.max(1, data.pagination.page - 2);
+							return start + i;
+						}) as pageNum}
+							{#if pageNum <= data.pagination.totalPages}
+								<button
+									on:click={() => handlePageChange(pageNum)}
+									class="px-4 py-2 text-sm border-2 rounded-lg font-medium shadow-sm transition-all duration-200 {pageNum === data.pagination.page 
+										? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-600 shadow-md' 
+										: 'bg-white border-gray-200 hover:bg-indigo-50 hover:border-indigo-300'}"
+								>
+									{pageNum}
+								</button>
+							{/if}
+						{/each}
+						
+						<button
+							on:click={() => handlePageChange(data.pagination.page + 1)}
+							disabled={!data.pagination.hasNext}
+							class="px-4 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200 transition-all duration-200 font-medium shadow-sm"
+						>
+							下一页
+						</button>
+					</div>
 				</div>
-				<div class="flex space-x-2">
-					<button
-						on:click={() => handlePageChange(data.pagination.page - 1)}
-						disabled={!data.pagination.hasPrev}
-						class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						上一页
-					</button>
-					
-					{#each Array.from({length: Math.min(5, data.pagination.totalPages)}, (_, i) => {
-						const start = Math.max(1, data.pagination.page - 2);
-						return start + i;
-					}) as pageNum}
-						{#if pageNum <= data.pagination.totalPages}
-							<button
-								on:click={() => handlePageChange(pageNum)}
-								class="px-3 py-1 text-sm border rounded-md {pageNum === data.pagination.page 
-									? 'bg-indigo-600 text-white border-indigo-600' 
-									: 'border-gray-300 hover:bg-gray-50'}"
-							>
-								{pageNum}
-							</button>
-						{/if}
-					{/each}
-					
-					<button
-						on:click={() => handlePageChange(data.pagination.page + 1)}
-						disabled={!data.pagination.hasNext}
-						class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						下一页
-					</button>
-				</div>
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 
 	<!-- 修改角色模态框 -->
@@ -321,28 +323,28 @@
 		aria-labelledby="role-modal-title"
 		tabindex="-1"
 		>
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<div 
-				class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content" 
-				on:click={(e: Event) => e.stopPropagation()}
-				on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
-				role="document"
-			>
-				<div class="px-6 py-4 border-b border-gray-200">
-					<div class="flex items-center justify-between">
-						<h3 id="role-modal-title" class="text-lg font-semibold text-gray-900">修改用户角色</h3>
-						<button
-							type="button"
-							on:click={closeModals}
-							class="text-gray-400 hover:text-gray-600 transition-colors"
-							aria-label="关闭弹框"
-						>
-							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-							</svg>
-						</button>
-					</div>
+		<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+		<div 
+			class="bg-white/95 backdrop-blur-md rounded-xl shadow-2xl max-w-md w-full mx-4 modal-content border border-white/30" 
+			on:click={(e: Event) => e.stopPropagation()}
+			on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
+			role="document"
+		>
+			<div class="px-6 py-5 border-b border-gray-200/50 bg-gradient-to-r from-indigo-50 to-purple-50">
+				<div class="flex items-center justify-between">
+					<h3 id="role-modal-title" class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">修改用户角色</h3>
+					<button
+						type="button"
+						on:click={closeModals}
+						class="text-gray-400 hover:text-gray-600 transition-all duration-200 hover:scale-110"
+						aria-label="关闭弹框"
+					>
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
 				</div>
+			</div>
 				
 				<form 
 					method="POST" 
@@ -376,19 +378,19 @@
 						</div>
 					</div>
 					
-					<div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-						<button
-							type="button"
-							on:click={closeModals}
-							class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-						>
-							取消
-						</button>
-						<button
-							type="submit"
-							disabled={loading}
-							class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center"
-						>
+				<div class="px-6 py-5 border-t border-gray-200/50 bg-gray-50/50 flex justify-end space-x-4">
+					<button
+						type="button"
+						on:click={closeModals}
+						class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 shadow-sm"
+					>
+						取消
+					</button>
+					<button
+						type="submit"
+						disabled={loading}
+						class="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					>
 							{#if loading}
 								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -416,16 +418,16 @@
 		aria-labelledby="password-modal-title"
 		tabindex="-1"
 		>
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<div 
-				class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content" 
-				on:click={(e: Event) => e.stopPropagation()}
-				on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
-				role="document"
-			>
-				<div class="px-6 py-4 border-b border-gray-200">
-					<div class="flex items-center justify-between">
-						<h3 id="password-modal-title" class="text-lg font-semibold text-gray-900">重置用户密码</h3>
+		<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+		<div 
+			class="bg-white/95 backdrop-blur-md rounded-xl shadow-2xl max-w-md w-full mx-4 modal-content border border-white/30" 
+			on:click={(e: Event) => e.stopPropagation()}
+			on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
+			role="document"
+		>
+			<div class="px-6 py-5 border-b border-gray-200/50 bg-gradient-to-r from-amber-50 to-orange-50">
+				<div class="flex items-center justify-between">
+					<h3 id="password-modal-title" class="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">重置用户密码</h3>
 						<button
 							type="button"
 							on:click={closeModals}
