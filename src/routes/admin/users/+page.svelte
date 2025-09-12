@@ -106,13 +106,21 @@
 
 	// 表单提交处理
 	function handleSubmit(action: string) {
-		loading = true;
-		return async ({ result }: any) => {
+		return async ({ result, update }: any) => {
+			console.log('表单提交结果:', result);
 			loading = false;
+			
 			if (result.type === 'success') {
+				console.log('操作成功:', result.data?.message);
 				closeModals();
-				// 刷新页面数据
-				goto(window.location.href, { replaceState: true });
+				// 更新页面数据
+				await update();
+			} else if (result.type === 'failure') {
+				console.error('操作失败:', result.data?.message);
+				// 失败时不关闭模态框，让用户看到错误信息
+			} else {
+				console.log('未知结果类型:', result.type);
+				loading = false;
 			}
 		};
 	}
@@ -238,12 +246,18 @@
 								>
 									重置密码
 								</button>
-								<button
-									on:click={() => openDeleteModal(user)}
-									class="text-red-600 hover:text-red-500"
-								>
-									删除
-								</button>
+								{#if user.role === 'admin'}
+									<span class="text-gray-400 cursor-not-allowed" title="超级管理员不可删除">
+										删除
+									</span>
+								{:else}
+									<button
+										on:click={() => openDeleteModal(user)}
+										class="text-red-600 hover:text-red-500"
+									>
+										删除
+									</button>
+								{/if}
 							</td>
 						</tr>
 					{/each}
@@ -330,7 +344,14 @@
 					</div>
 				</div>
 				
-				<form method="POST" action="?/updateRole" use:enhance={handleSubmit('updateRole')}>
+				<form 
+					method="POST" 
+					action="?/updateRole" 
+					use:enhance={() => {
+						loading = true;
+						return handleSubmit('updateRole');
+					}}
+				>
 					<div class="px-6 py-4">
 						<input type="hidden" name="userId" value={selectedUser.id} />
 						
@@ -418,7 +439,14 @@
 					</div>
 				</div>
 				
-				<form method="POST" action="?/resetPassword" use:enhance={handleSubmit('resetPassword')}>
+				<form 
+					method="POST" 
+					action="?/resetPassword" 
+					use:enhance={() => {
+						loading = true;
+						return handleSubmit('resetPassword');
+					}}
+				>
 					<div class="px-6 py-4">
 						<input type="hidden" name="userId" value={selectedUser.id} />
 						
@@ -520,7 +548,14 @@
 					</div>
 				</div>
 				
-				<form method="POST" action="?/deleteUser" use:enhance={handleSubmit('deleteUser')}>
+				<form 
+					method="POST" 
+					action="?/deleteUser" 
+					use:enhance={() => {
+						loading = true;
+						return handleSubmit('deleteUser');
+					}}
+				>
 					<div class="px-6 py-4">
 						<input type="hidden" name="userId" value={selectedUser.id} />
 						

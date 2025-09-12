@@ -185,6 +185,22 @@ export const actions: Actions = {
 		}
 
 		try {
+			// 检查要删除的用户信息
+			const [targetUser] = await db
+				.select({ role: table.user.role })
+				.from(table.user)
+				.where(eq(table.user.id, userId))
+				.limit(1);
+
+			if (!targetUser) {
+				return fail(404, { message: '用户不存在' });
+			}
+
+			// 防止删除超级管理员
+			if (targetUser.role === 'admin') {
+				return fail(400, { message: '不能删除超级管理员账户' });
+			}
+
 			// 软删除用户
 			await db
 				.update(table.user)
