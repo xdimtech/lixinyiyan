@@ -2,6 +2,8 @@
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { fade, slide } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -92,7 +94,7 @@
 	<title>任务审核 - {data.task.fileName} - 立心翻译</title>
 </svelte:head>
 
-<div class="max-w-8xl mx-auto h-screen flex flex-col">
+<div class="w-full h-screen flex flex-col">
 	<!-- 顶部导航 -->
 	<div class="bg-white border-b border-gray-200 px-6 py-4">
 		<div class="flex items-center justify-between">
@@ -196,21 +198,24 @@
 		<div class="flex-1 flex flex-col overflow-hidden">
 			{#if selectedPage}
 				<!-- 页面标题 -->
-				<div class="bg-white border-b border-gray-200 px-6 py-4">
+				<div class="bg-white border-b border-gray-200 px-6 py-4" 
+					 in:fade={{ duration: 300, easing: quintOut }}>
 					<h2 class="text-xl font-semibold text-gray-900">
 						第 {selectedPage.pageNum} 页详情
 					</h2>
 				</div>
 
 				<!-- 内容区域 - 左右两栏布局 -->
-				<div class="flex-1 flex overflow-hidden">
+				<div class="flex-1 flex overflow-hidden" 
+					 in:slide={{ duration: 400, easing: quintOut, axis: 'x' }}>
 					<!-- 左栏：OCR结果 -->
-					<div class="flex-1 flex flex-col border-r border-gray-200">
+					<div class="w-1/2 flex flex-col border-r border-gray-200">
 						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200 h-14 flex items-center">
 							<h3 class="text-lg font-medium text-gray-900">OCR识别结果</h3>
 						</div>
 						<div class="flex-1 overflow-y-auto p-4">
-							<div class="bg-white rounded-lg border border-gray-200 p-4 h-full">
+							<div class="bg-white rounded-lg border border-gray-200 p-4 h-full"
+								 in:fade={{ duration: 350, delay: 100, easing: quintOut }}>
 								{#if selectedPage.ocrText}
 									<pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed h-full overflow-y-auto">{selectedPage.ocrText}</pre>
 								{:else}
@@ -223,7 +228,7 @@
 					</div>
 
 					<!-- 右栏：翻译结果 -->
-					<div class="flex-1 flex flex-col">
+					<div class="w-1/2 flex flex-col bg-white">
 						<div class="bg-gray-50 px-4 py-3 border-b border-gray-200 h-14 flex items-center justify-between">
 							<h3 class="text-lg font-medium text-gray-900">
 								{data.task.parseType === 'translate' ? '翻译结果' : '翻译区域'}
@@ -262,46 +267,61 @@
 							{/if}
 						</div>
 						<div class="flex-1 overflow-y-auto p-4">
-							{#if data.task.parseType === 'translate'}
-								{#if editingTranslation}
-									<!-- 编辑模式 -->
-									<form 
-										id="translation-form"
-										method="POST" 
-										action="?/saveTranslation" 
-										use:enhance={saveTranslation}
-										class="h-full"
-									>
-										<input type="hidden" name="pageNum" value={selectedPage.pageNum} />
-										<textarea
-											name="translationText"
-											bind:value={editedTranslationText}
-											placeholder="请输入翻译内容..."
-											class="w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-relaxed resize-none"
-											required
-										></textarea>
-									</form>
-								{:else}
-									<!-- 展示模式 -->
-									<div class="bg-white rounded-lg border border-gray-200 p-4 h-full">
-										{#if selectedPage.translateText}
+							<!-- 确保翻译区域始终有内容显示 -->
+							<div class="bg-white rounded-lg border border-gray-200 p-4 h-full"
+								 in:fade={{ duration: 350, delay: 150, easing: quintOut }}>
+								{#if data.task.parseType === 'translate'}
+									{#if editingTranslation}
+										<!-- 编辑模式 -->
+										<form 
+											id="translation-form"
+											method="POST" 
+											action="?/saveTranslation" 
+											use:enhance={saveTranslation}
+											class="h-full flex flex-col"
+										>
+											<input type="hidden" name="pageNum" value={selectedPage.pageNum} />
+											<textarea
+												name="translationText"
+												bind:value={editedTranslationText}
+												placeholder="请输入翻译内容..."
+												class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-relaxed resize-none"
+												required
+											></textarea>
+										</form>
+									{:else}
+										<!-- 展示模式 -->
+										{#if selectedPage.translateText && selectedPage.translateText.trim()}
 											<pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed h-full overflow-y-auto">{selectedPage.translateText}</pre>
 										{:else}
 											<div class="text-gray-400 italic flex items-center justify-center h-full">
-												暂无翻译结果，点击"编辑翻译"添加翻译
+												{#if selectedPage.ocrText && selectedPage.ocrText.trim()}
+													<div class="text-center">
+														<div class="text-lg mb-2">📝 待翻译内容</div>
+														<div class="text-sm mb-3">OCR识别已完成，请点击"编辑翻译"添加翻译内容</div>
+														<div class="text-xs text-gray-500">
+															识别到 {selectedPage.ocrText.length} 个字符
+														</div>
+													</div>
+												{:else}
+													<div class="text-center">
+														<div class="text-lg mb-2">⚠️ 无内容可翻译</div>
+														<div class="text-sm">OCR识别结果为空，无法进行翻译</div>
+													</div>
+												{/if}
 											</div>
 										{/if}
+									{/if}
+								{:else}
+									<!-- 仅OCR模式 -->
+									<div class="text-gray-500 italic flex items-center justify-center h-full">
+										<div class="text-center">
+											<div class="text-lg mb-2">当前任务为仅识别模式</div>
+											<div class="text-sm">不包含翻译功能</div>
+										</div>
 									</div>
 								{/if}
-							{:else}
-								<!-- 仅OCR模式 -->
-								<div class="bg-gray-100 rounded-lg border border-gray-200 p-4 h-full flex items-center justify-center">
-									<div class="text-gray-500 italic text-center">
-										<div class="text-lg mb-2">当前任务为仅识别模式</div>
-										<div class="text-sm">不包含翻译功能</div>
-									</div>
-								</div>
-							{/if}
+							</div>
 						</div>
 					</div>
 				</div>
