@@ -184,25 +184,25 @@
 	<title>智能对话 - 立心译言</title>
 </svelte:head>
 
-<div class="h-full flex flex-col">
+<div class="h-full flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 
-	<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 overflow-hidden">
+	<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 overflow-hidden p-4">
 		<!-- 系统提示词设置 -->
 		<div class="lg:col-span-1">
-			<div class="bg-white rounded-lg shadow-sm p-4 flex flex-col h-full">
-				<h3 class="text-lg font-medium text-gray-900 mb-4">系统提示词</h3>
+			<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 flex flex-col h-full">
+				<h3 class="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">系统提示词</h3>
 				
 				<!-- 预设选项 -->
-				<div class="mb-4">
-					<div class="block text-sm font-medium text-gray-700 mb-2">
+				<div class="mb-6">
+					<div class="block text-sm font-semibold text-gray-800 mb-3">
 						预设选项
 					</div>
-					<div class="space-y-2">
+					<div class="space-y-3">
 						{#each presetPrompts as preset}
 							<button
 								type="button"
 								on:click={() => selectPresetPrompt(preset.prompt)}
-								class="w-full text-left px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+								class="w-full text-left px-4 py-3 text-sm bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg hover:from-indigo-100 hover:to-purple-100 hover:border-indigo-300 transition-all duration-200 hover:shadow-md"
 							>
 								{preset.name}
 							</button>
@@ -212,14 +212,14 @@
 
 				<!-- 自定义提示词 -->
 				<div class="flex-1 flex flex-col">
-					<label for="system-prompt" class="block text-sm font-medium text-gray-700 mb-2">
+					<label for="system-prompt" class="block text-sm font-semibold text-gray-800 mb-3">
 						自定义提示词
 					</label>
 					<textarea
 						id="system-prompt"
 						bind:value={systemPrompt}
 						placeholder={defaultSystemPrompt}
-						class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
+						class="flex-1 w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none bg-white/70 backdrop-blur-sm transition-all duration-200"
 					></textarea>
 				</div>
 			</div>
@@ -230,27 +230,27 @@
 			<!-- 消息历史 -->
 			<div 
 				bind:this={chatContainer}
-				class="flex-1 bg-white rounded-lg shadow-sm p-4 overflow-y-auto mb-38"
+				class="flex-1 bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 overflow-y-auto mb-38"
 			>
 				{#if chatHistory.length === 0}
-					<div class="text-center text-gray-500 mt-8">
-						<div class="text-4xl mb-4">💬</div>
-						<p>开始与AI助手对话吧！</p>
-						<p class="text-sm mt-2">您可以询问任何问题，AI会根据设定的系统提示词来回复。</p>
+					<div class="text-center text-gray-600 mt-16">
+						<div class="text-6xl mb-6 filter drop-shadow-lg">💬</div>
+						<h2 class="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">开始与AI助手对话吧！</h2>
+						<p class="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">您可以询问任何问题，AI会根据设定的系统提示词来回复。</p>
 					</div>
 				{:else}
-					<div class="space-y-4">
+					<div class="space-y-6">
 						{#each chatHistory as chat}
 							<!-- 用户消息 -->
 							<div class="flex justify-end">
-								<div class="max-w-xs lg:max-w-md bg-blue-50 text-gray-800 border border-blue-200 rounded-lg px-4 py-2">
-									<div class="text-sm">{chat.user}</div>
+								<div class="max-w-xs lg:max-w-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 rounded-2xl rounded-br-md px-5 py-3 shadow-lg">
+									<div class="text-sm font-medium">{chat.user}</div>
 								</div>
 							</div>
 							
 							<!-- AI回复 -->
 							<div class="flex justify-start">
-								<div class="max-w-xs lg:max-w-2xl bg-gray-100 text-gray-900 rounded-lg px-4 py-2 space-y-3">
+								<div class="max-w-xs lg:max-w-2xl bg-white/90 backdrop-blur-sm text-gray-900 rounded-2xl rounded-bl-md px-5 py-4 space-y-3 shadow-lg border border-gray-200/50">
 									{#if chat.isLoading && !chat.isStreaming}
 										<!-- Loading状态 -->
 										<div class="flex items-center space-x-2">
@@ -274,20 +274,20 @@
 									
 									<!-- 推理过程 (流式输出时也显示) -->
 									{#if chat.reasoningContent}
-										<div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-											<div class="flex items-center mb-2">
-												<svg class="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<div class="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 p-4 rounded-lg shadow-sm">
+											<div class="flex items-center mb-3">
+												<svg class="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
 												</svg>
-												<span class="text-sm font-medium text-blue-800">思考过程</span>
+												<span class="text-sm font-semibold text-amber-800">思考过程</span>
 												{#if chat.isStreaming}
-													<span class="ml-2 text-xs text-blue-600 animate-pulse">实时生成中...</span>
+													<span class="ml-2 text-xs text-amber-600 animate-pulse bg-amber-100 px-2 py-1 rounded-full">实时生成中...</span>
 												{/if}
 											</div>
-											<div class="text-sm text-blue-700 whitespace-pre-wrap font-mono bg-blue-25 p-2 rounded">
+											<div class="text-sm text-amber-800 whitespace-pre-wrap font-mono bg-white/70 backdrop-blur-sm p-3 rounded-lg border border-amber-200">
 												{chat.reasoningContent}
 												{#if chat.isStreaming}
-													<span class="inline-block w-2 h-4 bg-blue-600 animate-pulse ml-1">|</span>
+													<span class="inline-block w-2 h-4 bg-amber-600 animate-pulse ml-1">|</span>
 												{/if}
 											</div>
 										</div>
@@ -329,9 +329,9 @@
 			<!-- 输入区域 -->
 			<form 
 				on:submit|preventDefault={handleStreamChat}
-				class="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg border p-4"
+				class="absolute bottom-4 left-0 right-0 bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 p-6"
 			>
-				<div class="flex space-x-4">
+				<div class="flex space-x-5">
 					<div class="flex-1">
 						<textarea
 							name="message"
@@ -339,21 +339,21 @@
 							placeholder="输入您的消息..."
 							rows="3"
 							disabled={isLoading}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+							class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none bg-white/80 backdrop-blur-sm transition-all duration-200 text-gray-800 placeholder-gray-400"
 						></textarea>
 					</div>
-					<div class="flex flex-col justify-end space-y-2">
+					<div class="flex flex-col justify-end space-y-3">
 						<button
 							type="button"
 							on:click={clearChat}
-							class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors text-sm"
+							class="bg-gradient-to-r from-slate-500 to-slate-600 text-white px-6 py-3 rounded-lg hover:from-slate-600 hover:to-slate-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105 min-w-[120px] flex items-center justify-center"
 						>
 							清空对话
 						</button>
 						<button
 							type="submit"
 							disabled={!currentMessage.trim() || isLoading}
-							class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+							class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 min-w-[120px]"
 						>
 							{#if isLoading}
 								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
