@@ -184,22 +184,12 @@
 	<title>智能对话 - 立心译言</title>
 </svelte:head>
 
-<div class="max-w-8xl mx-auto h-full flex flex-col">
-	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-2xl font-bold text-gray-900">智能对话</h1>
-		<button
-			type="button"
-			on:click={clearChat}
-			class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-		>
-			清空对话
-		</button>
-	</div>
+<div class="h-full flex flex-col">
 
-	<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+	<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 overflow-hidden">
 		<!-- 系统提示词设置 -->
 		<div class="lg:col-span-1">
-			<div class="bg-white rounded-lg shadow-sm p-4 flex flex-col" style="height: 500px;">
+			<div class="bg-white rounded-lg shadow-sm p-4 flex flex-col h-full">
 				<h3 class="text-lg font-medium text-gray-900 mb-4">系统提示词</h3>
 				
 				<!-- 预设选项 -->
@@ -236,12 +226,11 @@
 		</div>
 
 		<!-- 对话区域 -->
-		<div class="lg:col-span-3 flex flex-col">
+		<div class="lg:col-span-3 flex flex-col relative h-full">
 			<!-- 消息历史 -->
 			<div 
 				bind:this={chatContainer}
-				class="flex-1 bg-white rounded-lg shadow-sm p-4 overflow-y-auto mb-4"
-				style="min-height: 400px; max-height: 600px;"
+				class="flex-1 bg-white rounded-lg shadow-sm p-4 overflow-y-auto mb-38"
 			>
 				{#if chatHistory.length === 0}
 					<div class="text-center text-gray-500 mt-8">
@@ -340,7 +329,7 @@
 			<!-- 输入区域 -->
 			<form 
 				on:submit|preventDefault={handleStreamChat}
-				class="bg-white rounded-lg shadow-sm p-4"
+				class="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg border p-4"
 			>
 				<div class="flex space-x-4">
 					<div class="flex-1">
@@ -353,7 +342,14 @@
 							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 resize-none"
 						></textarea>
 					</div>
-					<div class="flex flex-col justify-end">
+					<div class="flex flex-col justify-end space-y-2">
+						<button
+							type="button"
+							on:click={clearChat}
+							class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors text-sm"
+						>
+							清空对话
+						</button>
 						<button
 							type="submit"
 							disabled={!currentMessage.trim() || isLoading}
