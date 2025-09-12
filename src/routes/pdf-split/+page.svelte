@@ -302,13 +302,30 @@
 	};
 
 	const resetFlow = () => {
+		// 重置文件相关状态
 		selectedFile = null;
 		taskData = null;
 		currentStep = 1;
+		
+		// 重置操作状态
+		uploading = false;
+		splitting = false;
+		exporting = false;
+		downloadingImages = false;
+		isToggling = false;
+		
+		// 重置导出状态
 		exportSuccess = false;
 		exportMessage = '';
 		downloadImagesSuccess = false;
 		downloadImagesMessage = '';
+		selectedPagesForExport = [];
+		
+		// 重置图片预览模态框状态
+		showImageModal = false;
+		currentPreviewImage = null;
+		
+		// 清空文件输入框
 		const fileInput = document.getElementById('file') as HTMLInputElement;
 		if (fileInput) fileInput.value = '';
 	};
@@ -467,6 +484,15 @@
 							全不选
 						</button>
 						<button
+							on:click={resetFlow}
+							class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center"
+						>
+							<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+							</svg>
+							重新上传
+						</button>
+						<button
 							on:click={prepareDownloadImages}
 							disabled={selectedCount === 0 || downloadingImages}
 							class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
@@ -502,7 +528,7 @@
 					</div>
 
 					<!-- 图片网格 -->
-					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+					<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3">
 						{#each taskData.images as image (image.id)}
 							<div class="relative group">
 								<div 
@@ -513,7 +539,7 @@
 									on:keydown={(e: KeyboardEvent) => e.key === 'Enter' && togglePageSelection(image.id)}
 								>
 										<!-- 图片预览 -->
-										<div class="aspect-[3/4] bg-gray-200 rounded-md overflow-hidden relative">
+										<div class="aspect-[4/5] bg-gray-200 rounded-md overflow-hidden relative">
 														<img 
 															src={image.url} 
 															alt="第{image.id}页"
