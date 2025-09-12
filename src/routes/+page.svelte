@@ -11,47 +11,40 @@
 <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 -z-10"></div>
 <div class="absolute inset-0 opacity-30 -z-10" style="background-image: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.3) 1px, transparent 0); background-size: 20px 20px;"></div>
 
-<div class="max-w-7xl mx-auto relative">
+<div class="max-w-7xl mx-auto relative min-h-[calc(100vh-8rem)] flex flex-col">
 	<!-- 头部介绍区域 -->
-	<div class="text-center mb-16 pt-8">
-		<div class="mb-6">
-			<div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-6 shadow-lg">
-				<span class="text-white text-2xl font-bold">立</span>
+	<div class="text-center mb-8 pt-4">
+		<div class="mb-4">
+			<div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
+				<span class="text-white text-lg font-bold">立</span>
 			</div>
 		</div>
-		<h1 class="text-5xl font-bold mb-6">
+		<h1 class="text-3xl font-bold mb-4">
 			<span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 bg-clip-text text-transparent">
 				欢迎使用立心译言
 			</span>
 		</h1>
-		<p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+		<p class="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
 			专业的PDF文档智能识别翻译管理系统<br>
 			<span class="text-indigo-600 font-medium">轻松上传 • 智能识别 • 精准翻译</span>
 		</p>
-		
-		<!-- 装饰性元素 -->
-		<div class="flex justify-center mt-8 space-x-2">
-			<div class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
-			<div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
-			<div class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
-		</div>
 	</div>
 
 	<!-- 功能卡片区域 -->
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 flex-1">
 		<!-- 文件上传卡片 -->
-		<div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-8 transition-all duration-300 hover:-translate-y-2 border border-gray-100">
+		<div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:-translate-y-2 border border-gray-100">
 			<div class="text-center">
-				<div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-					<svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+					<svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
 					</svg>
 				</div>
-				<h3 class="text-xl font-bold text-gray-900 mb-3">文件上传</h3>
-				<p class="text-gray-600 mb-6 leading-relaxed">上传PDF文件，选择处理方式，开启智能翻译之旅</p>
+				<h3 class="text-lg font-bold text-gray-900 mb-2">文件上传</h3>
+				<p class="text-gray-600 mb-4 text-sm leading-relaxed">上传PDF文件，选择处理方式，开启智能翻译之旅</p>
 				<a
 					href="/upload"
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
 					style="color: white !important; text-decoration: none;"
 				>
 					开始上传
@@ -63,18 +56,18 @@
 		</div>
 
 		<!-- 任务管理卡片 -->
-		<div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-8 transition-all duration-300 hover:-translate-y-2 border border-gray-100">
+		<div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:-translate-y-2 border border-gray-100">
 			<div class="text-center">
-				<div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-					<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+					<svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
 					</svg>
 				</div>
-				<h3 class="text-xl font-bold text-gray-900 mb-3">任务管理</h3>
-				<p class="text-gray-600 mb-6 leading-relaxed">实时查看处理进度，轻松下载翻译结果</p>
+				<h3 class="text-lg font-bold text-gray-900 mb-2">任务管理</h3>
+				<p class="text-gray-600 mb-4 text-sm leading-relaxed">实时查看处理进度，轻松下载翻译结果</p>
 				<a
 					href="/tasks"
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 font-medium rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 font-medium rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
 					style="color: white !important; text-decoration: none;"
 				>
 					查看任务
@@ -86,18 +79,18 @@
 		</div>
 
 		<!-- 智能对话卡片 -->
-		<div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-8 transition-all duration-300 hover:-translate-y-2 border border-gray-100">
+		<div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:-translate-y-2 border border-gray-100">
 			<div class="text-center">
-				<div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-					<svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+					<svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
 					</svg>
 				</div>
-				<h3 class="text-xl font-bold text-gray-900 mb-3">智能对话</h3>
-				<p class="text-gray-600 mb-6 leading-relaxed">与AI助手智能对话，获得专业翻译建议</p>
+				<h3 class="text-lg font-bold text-gray-900 mb-2">智能对话</h3>
+				<p class="text-gray-600 mb-4 text-sm leading-relaxed">与AI助手智能对话，获得专业翻译建议</p>
 				<a
 					href="/chat"
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 font-medium rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 font-medium rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
 					style="color: white !important; text-decoration: none;"
 				>
 					开始对话
