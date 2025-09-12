@@ -201,15 +201,27 @@ bun run preview
 ### 环境变量配置
 创建 `.env` 文件配置以下变量：
 ```env
+# 数据库配置
 DATABASE_URL="mysql://user:password@localhost:3306/database"
+
+# API服务配置
 OCR_API_URL="http://127.0.0.1:8002/v1"
 TRANSLATE_API_URL="http://127.0.0.1:8003/v1"
+
+# PDF文件存储目录配置
+PDF_UPLOAD_DIR="uploads/files"
+PDF_OUTPUT_DIR="uploads/pdf-split"
+
+# OCR和翻译输出目录配置（新增）
+PDF_OCR_OUTPUT_DIR="uploads/ocr"
+PDF_TRANSLATE_OUTPUT_DIR="uploads/translate" 
+PDF_IMAGES_OUTPUT_DIR="uploads/images"
 ```
 
 ## 注意事项
 
 1. **PDF处理**: 当前PDF转图片功能为模拟实现，生产环境需要集成真实的PDF处理库
-2. **文件存储**: 上传的文件存储在 `/tmp/uploads`，生产环境建议使用持久化存储
+2. **文件存储**: 文件存储路径现在通过环境变量配置，默认在 `uploads/` 目录下，生产环境建议使用持久化存储
 3. **API依赖**: 系统依赖外部OCR和翻译API服务，请确保服务可用性
 4. **安全性**: 生产环境请配置适当的安全策略，如HTTPS、CORS等
 

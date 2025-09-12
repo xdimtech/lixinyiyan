@@ -6,7 +6,10 @@ import { eq } from 'drizzle-orm';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
-const DEFAULT_OUTPUT_DIR = "/tmp/output_dir";
+// 从环境变量获取目录配置
+const PDF_OCR_OUTPUT_DIR = process.env.PDF_OCR_OUTPUT_DIR || 'uploads/ocr';
+const PDF_TRANSLATE_OUTPUT_DIR = process.env.PDF_TRANSLATE_OUTPUT_DIR || 'uploads/translate';
+const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const session = locals.session;
@@ -68,8 +71,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}> = [];
 
 		// 查找图片文件目录
-		const taskDir = join(DEFAULT_OUTPUT_DIR, `task_${taskId}`);
-		const imagesDir = join(taskDir, 'images');
+		const imagesDir = join(PDF_IMAGES_OUTPUT_DIR, `task_${taskId}`, 'images');
 		
 		let imageBaseDir = '';
 		let pdfDirName = '';
@@ -159,7 +161,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				pageNum: task.pageNum
 			},
 			pages,
-			currentUser: session.user
+			currentUser: locals.user
 		};
 
 	} catch (e) {
@@ -213,7 +215,7 @@ export const actions: Actions = {
 				};
 			} else {
 				// 如果没有翻译记录，创建一个
-				const outputDir = join(DEFAULT_OUTPUT_DIR, `task_${taskId}`, 'translate');
+				const outputDir = join(PDF_TRANSLATE_OUTPUT_DIR, `task_${taskId}`);
 				await fs.mkdir(outputDir, { recursive: true });
 				
 				const outputPath = join(outputDir, `page_${pageNumStr}.txt`);
@@ -222,7 +224,7 @@ export const actions: Actions = {
 				// 在数据库中创建记录
 				await db.insert(table.metaTranslateOutput).values({
 					taskId: taskId,
-					inputFilePath: join(DEFAULT_OUTPUT_DIR, `task_${taskId}`, 'ocr', `page_${pageNumStr}.txt`),
+					inputFilePath: join(PDF_OCR_OUTPUT_DIR, `task_${taskId}`, `page_${pageNumStr}.txt`),
 					outputTxtPath: outputPath,
 					status: 2 // finished
 				});

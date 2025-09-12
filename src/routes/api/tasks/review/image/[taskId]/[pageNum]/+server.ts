@@ -3,7 +3,8 @@ import type { RequestHandler } from './$types';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
-const DEFAULT_OUTPUT_DIR = "/tmp/output_dir";
+// 从环境变量获取目录配置
+const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
 
 export const GET: RequestHandler = async ({ params, url }) => {
 	const { taskId, pageNum } = params;
@@ -15,8 +16,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
 	try {
 		// 构建图片路径
-		const taskDir = join(DEFAULT_OUTPUT_DIR, `task_${taskId}`);
-		const imagesDir = join(taskDir, 'images');
+		const imagesDir = join(PDF_IMAGES_OUTPUT_DIR, `task_${taskId}`, 'images');
 		
 		// 查找图片文件
 		let imagePath = '';

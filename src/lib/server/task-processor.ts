@@ -2,10 +2,18 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile, createZipArchive } from './pdf-processor';
-import { join } from 'path';
+import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
 
-const DEFAULT_OUTPUT_DIR = "/tmp/output_dir";
+// 从环境变量获取目录配置
+const PDF_OCR_OUTPUT_DIR = process.env.PDF_OCR_OUTPUT_DIR || 'uploads/ocr';
+const PDF_TRANSLATE_OUTPUT_DIR = process.env.PDF_TRANSLATE_OUTPUT_DIR || 'uploads/translate';
+const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
+
+console.log('PDF处理目录配置:');
+console.log('OCR输出目录:', PDF_OCR_OUTPUT_DIR);
+console.log('翻译输出目录:', PDF_TRANSLATE_OUTPUT_DIR);
+console.log('图片输出目录:', PDF_IMAGES_OUTPUT_DIR);
 
 /**
  * 处理PDF解析任务
@@ -32,11 +40,11 @@ export async function processTask(taskId: number): Promise<void> {
         console.log(`开始处理任务 ${taskId}: ${task.fileName}`);
 
         // 1. PDF转图片
-        const outputDir = join(DEFAULT_OUTPUT_DIR, `task_${taskId}`);
-        const imagePaths = await pdfToImages(task.filePath, outputDir);
+        const imagesOutputDir = join(PDF_IMAGES_OUTPUT_DIR, `task_${taskId}`);
+        const imagePaths = await pdfToImages(task.filePath, imagesOutputDir);
 
-        const outputOCRDir = join(outputDir, `ocr`);
-        const outputTranslateDir = join(outputDir, `translate`);
+        const outputOCRDir = join(PDF_OCR_OUTPUT_DIR, `task_${taskId}`);
+        const outputTranslateDir = join(PDF_TRANSLATE_OUTPUT_DIR, `task_${taskId}`);
         
         // 更新页数
         await db
@@ -125,17 +133,43 @@ export async function processTask(taskId: number): Promise<void> {
         }
 
         // 3. 创建压缩包
-        const zipSavePath = join(outputDir, `${task.fileName}_result.zip`);
-        var zipSourceDir = outputOCRDir
-        if (task.parseType === 'translate') {
-            zipSourceDir = outputTranslateDir
+        const zipSavePath = join(imagesOutputDir, `${basename(task.fileName, extname(task.fileName))}_result.zip`);
+        
+        // 创建一个临时目录来组织所有结果文件
+        const tempPackageDir = join(imagesOutputDir, 'package');
+        await fs.mkdir(tempPackageDir, { recursive: true });
+        
+        // 复制OCR结果到打包目录
+        const tempOcrDir = join(tempPackageDir, 'ocr');
+        await fs.mkdir(tempOcrDir, { recursive: true });
+        try {
+            const ocrFiles = await fs.readdir(outputOCRDir);
+            for (const file of ocrFiles) {
+                await fs.copyFile(join(outputOCRDir, file), join(tempOcrDir, file));
+            }
+        } catch (e) {
+            console.warn('复制OCR文件失败:', e);
         }
         
-        // 确保源目录存在
-        await fs.mkdir(zipSourceDir, { recursive: true });
+        // 复制翻译结果到打包目录（如果存在）
+        if (task.parseType === 'translate') {
+            const tempTranslateDir = join(tempPackageDir, 'translate');
+            await fs.mkdir(tempTranslateDir, { recursive: true });
+            try {
+                const translateFiles = await fs.readdir(outputTranslateDir);
+                for (const file of translateFiles) {
+                    await fs.copyFile(join(outputTranslateDir, file), join(tempTranslateDir, file));
+                }
+            } catch (e) {
+                console.warn('复制翻译文件失败:', e);
+            }
+        }
         
-        console.log(`创建压缩包: ${zipSourceDir} -> ${zipSavePath}`);
-        await createZipArchive(zipSourceDir, zipSavePath);
+        console.log(`创建压缩包: ${tempPackageDir} -> ${zipSavePath}`);
+        await createZipArchive(tempPackageDir, zipSavePath);
+        
+        // 清理临时打包目录
+        await fs.rm(tempPackageDir, { recursive: true, force: true });
 
         // 4. 更新任务状态为完成
         await db
