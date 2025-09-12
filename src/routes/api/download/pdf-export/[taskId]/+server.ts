@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
 import path from 'path';
+import { pdfOutputDir } from '$lib/config/paths';
 
 export const GET: RequestHandler = async ({ params }) => {
 	const { taskId } = params;
@@ -12,10 +13,14 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 
 	// 构建任务目录路径
-	const taskDir = path.join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId);
+	const taskDir = path.join(pdfOutputDir, taskId);
+
+	console.log(`使用路径配置 - pdfOutputDir: ${pdfOutputDir}`);
+	console.log(`查找任务目录: ${taskDir}`);
 
 	// 检查目录是否存在
 	if (!fs.existsSync(taskDir)) {
+		console.error(`任务目录不存在: ${taskDir}`);
 		throw error(404, 'Task directory not found');
 	}
 

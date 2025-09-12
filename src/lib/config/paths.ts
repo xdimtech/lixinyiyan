@@ -12,6 +12,8 @@ export interface PathConfig {
   
   // OCR和翻译路径
   ocrOutputDir: string;
+  ocrZipOutputDir: string;
+  translateZipOutputDir: string;
   translateOutputDir: string;
   imagesOutputDir: string;
   
@@ -37,6 +39,8 @@ const pathConfigs: Record<Environment, PathConfig> = {
     pdfUploadDir: 'uploads/files',
     pdfOutputDir: 'uploads/pdf-split',
     ocrOutputDir: 'uploads/ocr',
+    ocrZipOutputDir: 'uploads/ocr-zip',
+    translateZipOutputDir: 'uploads/translate-zip',
     translateOutputDir: 'uploads/translate',
     imagesOutputDir: 'uploads/images',
     logDir: 'logs',
@@ -48,6 +52,8 @@ const pathConfigs: Record<Environment, PathConfig> = {
     pdfUploadDir: '/tmp/lixin-test/uploads',
     pdfOutputDir: '/tmp/lixin-test/pdf-split',
     ocrOutputDir: '/tmp/lixin-test/ocr',
+    ocrZipOutputDir: '/tmp/lixin-test/ocr-zip',
+    translateZipOutputDir: '/tmp/lixin-test/translate-zip',
     translateOutputDir: '/tmp/lixin-test/translate',
     imagesOutputDir: '/tmp/lixin-test/images',
     logDir: '/tmp/lixin-test/logs',
@@ -59,6 +65,8 @@ const pathConfigs: Record<Environment, PathConfig> = {
     pdfUploadDir: '/opt/lixin/data/uploads',
     pdfOutputDir: '/opt/lixin/data/pdf-split',
     ocrOutputDir: '/opt/lixin/data/ocr',
+    ocrZipOutputDir: '/opt/lixin/data/ocr-zip',
+    translateZipOutputDir: '/opt/lixin/data/translate-zip',
     translateOutputDir: '/opt/lixin/data/translate',
     imagesOutputDir: '/opt/lixin/data/images',
     logDir: '/var/log/lixin',
@@ -70,6 +78,8 @@ const pathConfigs: Record<Environment, PathConfig> = {
     pdfUploadDir: '/app/data/uploads',
     pdfOutputDir: '/app/data/pdf-split',
     ocrOutputDir: '/app/data/ocr',
+    ocrZipOutputDir: '/app/data/ocr-zip',
+    translateZipOutputDir: '/app/data/translate-zip',
     translateOutputDir: '/app/data/translate',
     imagesOutputDir: '/app/data/images',
     logDir: '/app/logs',
@@ -147,6 +157,8 @@ export function getPathConfig(): PathConfig {
     ocrOutputDir: expandPath(finalConfig.ocrOutputDir),
     translateOutputDir: expandPath(finalConfig.translateOutputDir),
     imagesOutputDir: expandPath(finalConfig.imagesOutputDir),
+    ocrZipOutputDir: expandPath(finalConfig.ocrZipOutputDir),
+    translateZipOutputDir: expandPath(finalConfig.translateZipOutputDir),
     logDir: finalConfig.logDir ? expandPath(finalConfig.logDir) : undefined,
     tempDir: finalConfig.tempDir ? expandPath(finalConfig.tempDir) : undefined
   };
@@ -194,7 +206,9 @@ export const {
   pdfUploadDir,
   pdfOutputDir,
   ocrOutputDir,
+  ocrZipOutputDir,
   translateOutputDir,
+  translateZipOutputDir,
   imagesOutputDir,
   logDir,
   tempDir

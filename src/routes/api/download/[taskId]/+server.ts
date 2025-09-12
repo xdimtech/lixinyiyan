@@ -4,9 +4,8 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { createReadStream, existsSync } from 'fs';
-import { join } from 'path';
-
-const DEFAULT_OUTPUT_DIR = "/tmp/output_dir";
+import { join, basename, extname } from 'path';
+import { imagesOutputDir, translateOutputDir, ocrZipOutputDir, translateZipOutputDir } from '$lib/config/paths';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
     if (!locals.user) {
@@ -43,9 +42,25 @@ export const GET: RequestHandler = async ({ params, locals }) => {
             throw error(400, '任务尚未完成，无法下载');
         }
 
-        // 构建压缩包路径
-        const zipPath = join(DEFAULT_OUTPUT_DIR, `task_${taskId}`, `${task.fileName}_result.zip`);
+        // 根据处理类型确定压缩包路径 - 与任务处理器逻辑保持一致
+        let zipPath: string;
+        let outputDir: string;
         
+        // 使用与任务处理器相同的文件名构建逻辑
+        const fileNameWithoutExt = basename(task.fileName, extname(task.fileName));
+        
+        if (task.parseType === 'translate') {
+            // 翻译任务：结果在 translateOutputDir 中
+            outputDir = translateZipOutputDir;
+            zipPath = join(translateOutputDir, `task_${taskId}`, `${fileNameWithoutExt}_translate_result.zip`);
+        } else {
+            // OCR任务：结果在 imagesOutputDir 中
+            outputDir = ocrZipOutputDir;
+            zipPath = join(ocrZipOutputDir, `task_${taskId}`, `${fileNameWithoutExt}_ocr_result.zip`);
+        }
+        
+        console.log(`任务类型: ${task.parseType}`);
+        console.log(`使用输出目录: ${outputDir}`);
         console.log(`查找压缩包文件: ${zipPath}`);
         console.log(`文件是否存在: ${existsSync(zipPath)}`);
         
@@ -57,10 +72,15 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         // 读取文件并返回
         const stream = createReadStream(zipPath);
         
+        // 根据任务类型设置下载文件名 - 与压缩包实际文件名一致
+        const downloadFileName = task.parseType === 'translate' 
+            ? `${fileNameWithoutExt}_translate_result.zip`
+            : `${fileNameWithoutExt}_ocr_result.zip`;
+        
         return new Response(stream as any, {
             headers: {
                 'Content-Type': 'application/zip',
-                'Content-Disposition': `attachment; filename="${task.fileName}_result.zip"`
+                'Content-Disposition': `attachment; filename="${downloadFileName}"`
             }
         });
 
