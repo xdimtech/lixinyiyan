@@ -46,19 +46,39 @@ const adminItems = [
 	<!-- 已登录用户的主界面 -->
 	<div class="min-h-screen bg-gray-50">
 		<!-- 顶部导航栏 -->
-		<nav class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-50">
+		<nav class="bg-white backdrop-blur-md bg-opacity-95 shadow-lg border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
 			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div class="flex justify-between h-16">
-					<div class="flex items-center">
-						<h1 class="text-xl font-semibold text-gray-900">立心译言</h1>
+					<div class="flex items-center space-x-3">
+						<!-- Logo/品牌图标 -->
+						<div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+							<span class="text-white text-sm font-bold">立</span>
+						</div>
+						<h1 class="text-xl font-bold text-gray-900 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+							立心译言
+						</h1>
 					</div>
-					<div class="flex items-center space-x-4">
-						<span class="text-sm text-gray-700">欢迎，{data.user?.username}</span>
+					<div class="flex items-center space-x-6">
+						<!-- 用户信息 -->
+						<div class="flex items-center space-x-3">
+							<div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full">
+								<span class="text-gray-600 text-sm font-medium">
+									{data.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+								</span>
+							</div>
+							<span class="text-sm font-medium text-gray-700">
+								欢迎，<span class="text-indigo-600">{data.user?.username}</span>
+							</span>
+						</div>
+						<!-- 退出登录按钮 -->
 						<form method="POST" action="/logout?/logout" use:enhance>
 							<button
 								type="submit"
-								class="text-sm text-gray-500 hover:text-gray-700"
+								class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-all duration-200 ease-in-out"
 							>
+								<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+								</svg>
 								退出登录
 							</button>
 						</form>
