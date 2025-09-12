@@ -21,7 +21,7 @@
 
 <div class="min-h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
 	<div class="max-w-6xl mx-auto">
-		<h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-8">系统管理</h1>
+		<h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-8" style="text-align: left !important;">系统管理</h1>
 
 		<!-- 系统统计 -->
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -191,18 +191,18 @@
 				</a>
 			</div>
 		</div>
+
+		<!-- 消息显示 -->
+		{#if form?.message}
+			<div class="mt-4 p-4 rounded-md {form.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}">
+				{form.message}
+			</div>
+		{/if}
+
+		{#if data.error}
+			<div class="mt-4 p-4 rounded-md bg-red-50 text-red-800">
+				{data.error}
+			</div>
+		{/if}
 	</div>
-
-	<!-- 消息显示 -->
-	{#if form?.message}
-		<div class="mt-4 p-4 rounded-md {form.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}">
-			{form.message}
-		</div>
-	{/if}
-
-	{#if data.error}
-		<div class="mt-4 p-4 rounded-md bg-red-50 text-red-800">
-			{data.error}
-		</div>
-	{/if}
 </div>
