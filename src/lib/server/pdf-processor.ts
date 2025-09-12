@@ -18,12 +18,25 @@ You are a translation expert.
 ## Output Format
 Please output in TXT format.`;
 
-const TRANSLATE_SYSTEM_PROMPT = `把下面这段话，翻译成中文，要求符合**民国时期**的表达方式。
-翻译时注意事项：
-对于称呼：男性称呼先生，女性称呼女士
-对于日期：使用民国日期
-对于语言表达：民国时期的表达风格是文言文与白话文的交叉使用
-注意遇到人名要准确翻译。`;
+const TRANSLATE_SYSTEM_PROMPT = `# 角色
+您是一位民国时期的翻译专家，擅长将英文文本翻译为民国时期的表达风格。
+
+# 任务
+输入英文文本内容，你需要用民国时期的中文表达进行翻译。你一定要一句一句仔细思考，结合历史背景推敲。
+
+# 背景资料
+中华民国的年份范围是从 1912 年 1 月 1 日中华民国成立开始，到 1949 年 10 月 1 日中华人民共和国成立为止， 1949 年 10 月 1 日开始就不是民国时期，按照新中国的普通话直接翻译。
+
+在民国时期，日期表达会使用 “民国纪年”，同时星期的说法与现在一致。“上周日” 可表达为 “上星期日”，若结合具体年份，需将公元年份转换为民国纪年（民国纪年 = 公元年份 - 1911）。
+
+# 技能
+
+- 对于称呼使用"先生"、"女士"。
+- 民国时期的表达风格是白话文，参考该时期胡适和鲁迅等人的写作风格。
+- 遇到人名如果没有合适的翻译请保留，遇到政治词汇请结合历史背景推测。
+-  原文翻译完毕后不要输出任何注释与背景补充，请把注释与背景补充放到你的思考过程中。
+
+- **一定要用简体中文输出，不要用繁体字**`;
 
 /**
  * 将PDF文件转换为图片
@@ -130,19 +143,30 @@ export async function callOcrApi(imagePath: string, systemPrompt?: string): Prom
 }
 
 /**
- * 调用翻译API
+ * 翻译进度回调类型
  */
-export async function callTranslateApi(text: string, systemPrompt?: string): Promise<string> {
+export type TranslateProgressCallback = (progress: {
+    type: 'reasoning' | 'content';
+    content: string;
+    fullReasoning?: string;
+    fullContent?: string;
+}) => void;
+
+/**
+ * 调用翻译API（流式输出版本）
+ */
+export async function callTranslateApi(text: string, systemPrompt?: string, onProgress?: TranslateProgressCallback): Promise<string> {
     try {
         const client = new OpenAI({
             apiKey: "EMPTY",
             baseURL: TRANSLATE_API_URL,
-            timeout: 60000, // 30秒超时
+            timeout: 60000, // 60秒超时
         });
 
         const prompt = systemPrompt || TRANSLATE_SYSTEM_PROMPT;
 
-        const chatResponse = await client.chat.completions.create({
+        // 使用流式输出
+        const chatResponse = await (client.chat.completions.create as any)({
             model: TRANSLATE_MODEL,
             temperature: 0.7,
             top_p: 0.8,
@@ -150,10 +174,66 @@ export async function callTranslateApi(text: string, systemPrompt?: string): Pro
             messages: [
                 { role: "system", content: prompt },
                 { role: "user", content: text }
-            ]
+            ],
+            extra_body: {
+                "top_k": 20, 
+                "chat_template_kwargs": {"enable_thinking": true},
+            },
+            stream: true,
         });
 
-        return chatResponse.choices[0].message.content || '';
+        let fullResponse = '';
+        let reasoningContent = '';
+
+        // 处理流式响应并等待完成
+        for await (const chunk of chatResponse) {
+            if (chunk.choices && chunk.choices[0]) {
+                const delta = chunk.choices[0].delta;
+                
+                // 处理推理内容
+                if (delta?.reasoning_content) {
+                    reasoningContent += delta.reasoning_content;
+                    // 输出推理过程日志
+                    console.log('翻译推理:', delta.reasoning_content);
+                    
+                    // 调用进度回调
+                    if (onProgress) {
+                        onProgress({
+                            type: 'reasoning',
+                            content: delta.reasoning_content,
+                            fullReasoning: reasoningContent,
+                            fullContent: fullResponse
+                        });
+                    }
+                }
+                
+                // 处理主要回复内容
+                if (delta?.content) {
+                    fullResponse += delta.content;
+                    // 输出流式内容日志
+                    console.log('翻译内容:', delta.content);
+                    
+                    // 调用进度回调
+                    if (onProgress) {
+                        onProgress({
+                            type: 'content',
+                            content: delta.content,
+                            fullReasoning: reasoningContent,
+                            fullContent: fullResponse
+                        });
+                    }
+                }
+            }
+        }
+
+        console.log(`翻译完成 - 内容长度: ${fullResponse.length}, 推理长度: ${reasoningContent.length}`);
+        
+        // 如果启用了推理内容，在日志中显示推理总结
+        if (reasoningContent) {
+            console.log('推理内容预览:', reasoningContent.slice(0, 200) + (reasoningContent.length > 200 ? '...' : ''));
+        }
+        
+        return fullResponse || '';
     } catch (error) {
         console.error('翻译API调用失败:', error);
         throw error;

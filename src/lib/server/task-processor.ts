@@ -88,10 +88,16 @@ export async function processTask(taskId: number): Promise<void> {
 
                 // 如果需要翻译
                 if (task.parseType === 'translate') {
-                    console.log(`开始翻译第 ${i + 1} 页: ${ocrOutputPath}`);
-                    const translateText = await callTranslateApi(ocrText);
+                    console.log(`开始流式翻译第 ${i + 1} 页: ${ocrOutputPath}`);
+                    
+                    // 使用流式翻译API，带进度监控
+                    const translateText = await callTranslateApi(ocrText, undefined, (progress) => {
+                        // console.log(`第 ${i + 1} 页翻译进度 [${progress.type}]:`, progress.content.slice(0, 50) + (progress.content.length > 50 ? '...' : ''));
+                    });
+                    
                     const translateOutputPath = join(outputTranslateDir, `page_${(i + 1).toString().padStart(3, '0')}.txt`);
                     await saveTextToFile(translateText, translateOutputPath);
+                    console.log(`第 ${i + 1} 页翻译完成，输出长度: ${translateText.length}`);
 
                     // 保存翻译记录
                     await db.insert(table.metaTranslateOutput).values({
@@ -121,8 +127,6 @@ export async function processTask(taskId: number): Promise<void> {
                 const translateOutputPath = join(outputTranslateDir, `page_${(i + 1).toString().padStart(3, '0')}.txt`);
 
                 try {
-                    const translateText = await callTranslateApi(curOcrText);
-                    await saveTextToFile(translateText, translateOutputPath);
                     // 保存翻译记录
                     await db.insert(table.metaTranslateOutput).values({
                         taskId: taskId,
