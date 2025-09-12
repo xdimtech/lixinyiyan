@@ -1,0 +1,25 @@
+# 测试环境配置示例
+NODE_ENV=test
+
+# 数据库配置 - 测试数据库
+DATABASE_URL="mysql://test:test@localhost:3306/lixin_test"
+
+# API服务配置
+OCR_API_URL="http://127.0.0.1:8002/v1"
+TRANSLATE_API_URL="http://127.0.0.1:8003/v1"
+
+# 文件存储配置 - 测试环境使用临时目录
+PDF_UPLOAD_DIR="/tmp/lixin-test/uploads"
+PDF_OUTPUT_DIR="/tmp/lixin-test/pdf-split"
+
+# OCR和翻译输出目录 - 测试环境路径
+PDF_OCR_OUTPUT_DIR="/tmp/lixin-test/ocr"
+PDF_TRANSLATE_OUTPUT_DIR="/tmp/lixin-test/translate"
+PDF_IMAGES_OUTPUT_DIR="/tmp/lixin-test/images"
+
+# 日志和临时目录
+LOG_DIR="/tmp/lixin-test/logs"
+TEMP_DIR="/tmp/lixin-test/temp"
+
+# 测试配置
+TEST_TIMEOUT=30000

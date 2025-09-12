@@ -2,9 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { join } from 'path';
 import { promises as fs } from 'fs';
-
-// 从环境变量获取目录配置
-const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
+import { imagesOutputDir } from '$lib/config/paths';
 
 export const GET: RequestHandler = async ({ params, url }) => {
 	const { taskId, pageNum } = params;
@@ -16,20 +14,20 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
 	try {
 		// 构建图片路径
-		const imagesDir = join(PDF_IMAGES_OUTPUT_DIR, `task_${taskId}`, 'images');
+		const taskImagesDir = join(imagesOutputDir, `task_${taskId}`, 'images');
 		
 		// 查找图片文件
 		let imagePath = '';
 		if (dirName) {
 			// 使用传入的目录名
-			imagePath = join(imagesDir, dirName, `page_${pageNum}.png`);
+			imagePath = join(taskImagesDir, dirName, `page_${pageNum}.png`);
 		} else {
 			// 自动查找目录
 			try {
-				const dirs = await fs.readdir(imagesDir);
+				const dirs = await fs.readdir(taskImagesDir);
 				const pdfDir = dirs.find(dir => !dir.includes('.') && !dir.startsWith('.'));
 				if (pdfDir) {
-					imagePath = join(imagesDir, pdfDir, `page_${pageNum}.png`);
+					imagePath = join(taskImagesDir, pdfDir, `page_${pageNum}.png`);
 				}
 			} catch (e) {
 				throw error(404, '图片文件不存在');

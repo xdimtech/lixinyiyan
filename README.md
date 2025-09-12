@@ -213,9 +213,20 @@ PDF_UPLOAD_DIR="uploads/files"
 PDF_OUTPUT_DIR="uploads/pdf-split"
 
 # OCR和翻译输出目录配置（新增）
+# 开发环境示例
 PDF_OCR_OUTPUT_DIR="uploads/ocr"
 PDF_TRANSLATE_OUTPUT_DIR="uploads/translate" 
 PDF_IMAGES_OUTPUT_DIR="uploads/images"
+
+# 生产环境示例（支持~路径扩展）
+# PDF_OCR_OUTPUT_DIR="~/data/lixin/ocr"
+# PDF_TRANSLATE_OUTPUT_DIR="~/data/lixin/translate"
+# PDF_IMAGES_OUTPUT_DIR="~/data/lixin/images"
+
+# 或使用绝对路径
+# PDF_OCR_OUTPUT_DIR="/opt/lixin/data/ocr"
+# PDF_TRANSLATE_OUTPUT_DIR="/opt/lixin/data/translate"
+# PDF_IMAGES_OUTPUT_DIR="/opt/lixin/data/images"
 ```
 
 ## 注意事项

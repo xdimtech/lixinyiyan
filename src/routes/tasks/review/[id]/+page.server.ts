@@ -5,11 +5,7 @@ import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { join } from 'path';
 import { promises as fs } from 'fs';
-
-// 从环境变量获取目录配置
-const PDF_OCR_OUTPUT_DIR = process.env.PDF_OCR_OUTPUT_DIR || 'uploads/ocr';
-const PDF_TRANSLATE_OUTPUT_DIR = process.env.PDF_TRANSLATE_OUTPUT_DIR || 'uploads/translate';
-const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
+import { ocrOutputDir, translateOutputDir, imagesOutputDir } from '$lib/config/paths';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const session = locals.session;
@@ -71,20 +67,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}> = [];
 
 		// 查找图片文件目录
-		const imagesDir = join(PDF_IMAGES_OUTPUT_DIR, `task_${taskId}`, 'images');
+		const taskImagesDir = join(imagesOutputDir, `task_${taskId}`, 'images');
 		
 		let imageBaseDir = '';
 		let pdfDirName = '';
 		try {
 			// 尝试找到图片目录
-			const dirs = await fs.readdir(imagesDir);
+			const dirs = await fs.readdir(taskImagesDir);
 			const pdfDir = dirs.find(dir => !dir.includes('.') && !dir.startsWith('.'));
 			if (pdfDir) {
-				imageBaseDir = join(imagesDir, pdfDir);
+				imageBaseDir = join(taskImagesDir, pdfDir);
 				pdfDirName = pdfDir;
 			}
 		} catch (e) {
-			console.warn('Images directory not found:', imagesDir);
+			console.warn('Images directory not found:', taskImagesDir);
 		}
 
 		// 构建每页的数据
@@ -215,7 +211,7 @@ export const actions: Actions = {
 				};
 			} else {
 				// 如果没有翻译记录，创建一个
-				const outputDir = join(PDF_TRANSLATE_OUTPUT_DIR, `task_${taskId}`);
+				const outputDir = join(translateOutputDir, `task_${taskId}`);
 				await fs.mkdir(outputDir, { recursive: true });
 				
 				const outputPath = join(outputDir, `page_${pageNumStr}.txt`);
@@ -224,7 +220,7 @@ export const actions: Actions = {
 				// 在数据库中创建记录
 				await db.insert(table.metaTranslateOutput).values({
 					taskId: taskId,
-					inputFilePath: join(PDF_OCR_OUTPUT_DIR, `task_${taskId}`, `page_${pageNumStr}.txt`),
+					inputFilePath: join(ocrOutputDir, `task_${taskId}`, `page_${pageNumStr}.txt`),
 					outputTxtPath: outputPath,
 					status: 2 // finished
 				});

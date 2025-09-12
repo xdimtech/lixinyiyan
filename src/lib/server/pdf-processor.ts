@@ -9,9 +9,6 @@ const TRANSLATE_API_URL = "http://127.0.0.1:8003/v1";
 const DEFAULT_MODEL = "Qwen/Qwen2.5-VL-7B-Instruct";
 const TRANSLATE_MODEL = "Qwen/Qwen3-14B-FP8";
 
-// 从环境变量获取目录配置
-const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
-
 const SYSTEM_PROMPT = `## Role
 You are a translation expert.
 ## Your Task

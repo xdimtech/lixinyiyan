@@ -4,16 +4,10 @@ import { eq } from 'drizzle-orm';
 import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile, createZipArchive } from './pdf-processor';
 import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
+import { initializePathConfig, ocrOutputDir, translateOutputDir, imagesOutputDir } from '$lib/config/paths';
 
-// 从环境变量获取目录配置
-const PDF_OCR_OUTPUT_DIR = process.env.PDF_OCR_OUTPUT_DIR || 'uploads/ocr';
-const PDF_TRANSLATE_OUTPUT_DIR = process.env.PDF_TRANSLATE_OUTPUT_DIR || 'uploads/translate';
-const PDF_IMAGES_OUTPUT_DIR = process.env.PDF_IMAGES_OUTPUT_DIR || 'uploads/images';
-
-console.log('PDF处理目录配置:');
-console.log('OCR输出目录:', PDF_OCR_OUTPUT_DIR);
-console.log('翻译输出目录:', PDF_TRANSLATE_OUTPUT_DIR);
-console.log('图片输出目录:', PDF_IMAGES_OUTPUT_DIR);
+// 初始化路径配置
+const pathConfig = initializePathConfig();
 
 /**
  * 处理PDF解析任务
@@ -40,11 +34,11 @@ export async function processTask(taskId: number): Promise<void> {
         console.log(`开始处理任务 ${taskId}: ${task.fileName}`);
 
         // 1. PDF转图片
-        const imagesOutputDir = join(PDF_IMAGES_OUTPUT_DIR, `task_${taskId}`);
-        const imagePaths = await pdfToImages(task.filePath, imagesOutputDir);
+        const taskImagesDir = join(imagesOutputDir, `task_${taskId}`);
+        const imagePaths = await pdfToImages(task.filePath, taskImagesDir);
 
-        const outputOCRDir = join(PDF_OCR_OUTPUT_DIR, `task_${taskId}`);
-        const outputTranslateDir = join(PDF_TRANSLATE_OUTPUT_DIR, `task_${taskId}`);
+        const outputOCRDir = join(ocrOutputDir, `task_${taskId}`);
+        const outputTranslateDir = join(translateOutputDir, `task_${taskId}`);
         
         // 更新页数
         await db
@@ -133,10 +127,10 @@ export async function processTask(taskId: number): Promise<void> {
         }
 
         // 3. 创建压缩包
-        const zipSavePath = join(imagesOutputDir, `${basename(task.fileName, extname(task.fileName))}_result.zip`);
+        const zipSavePath = join(taskImagesDir, `${basename(task.fileName, extname(task.fileName))}_result.zip`);
         
         // 创建一个临时目录来组织所有结果文件
-        const tempPackageDir = join(imagesOutputDir, 'package');
+        const tempPackageDir = join(taskImagesDir, 'package');
         await fs.mkdir(tempPackageDir, { recursive: true });
         
         // 复制OCR结果到打包目录

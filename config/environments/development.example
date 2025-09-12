@@ -1,0 +1,27 @@
+# 开发环境配置示例
+NODE_ENV=development
+
+# 数据库配置
+DATABASE_URL="mysql://user:password@localhost:3306/lixin_dev"
+
+# API服务配置
+OCR_API_URL="http://127.0.0.1:8002/v1"
+TRANSLATE_API_URL="http://127.0.0.1:8003/v1"
+
+# 文件存储配置 - 开发环境使用相对路径
+PDF_UPLOAD_DIR="uploads/files"
+PDF_OUTPUT_DIR="uploads/pdf-split"
+
+# OCR和翻译输出目录 - 可以使用 ~ 路径
+# PDF_OCR_OUTPUT_DIR="~/data/lixin-dev/ocr"
+# PDF_TRANSLATE_OUTPUT_DIR="~/data/lixin-dev/translate"
+# PDF_IMAGES_OUTPUT_DIR="~/data/lixin-dev/images"
+
+# 或者使用相对路径（默认）
+PDF_OCR_OUTPUT_DIR="uploads/ocr"
+PDF_TRANSLATE_OUTPUT_DIR="uploads/translate"
+PDF_IMAGES_OUTPUT_DIR="uploads/images"
+
+# 日志和临时目录
+LOG_DIR="logs"
+TEMP_DIR="temp"

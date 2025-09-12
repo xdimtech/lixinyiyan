@@ -1,0 +1,26 @@
+# 生产环境配置示例
+NODE_ENV=production
+
+# 数据库配置
+DATABASE_URL="mysql://lixin:secure_password@localhost:3306/lixin_prod"
+
+# API服务配置
+OCR_API_URL="http://127.0.0.1:8002/v1"
+TRANSLATE_API_URL="http://127.0.0.1:8003/v1"
+
+# 文件存储配置 - 生产环境使用绝对路径
+PDF_UPLOAD_DIR="/opt/lixin/data/uploads"
+PDF_OUTPUT_DIR="/opt/lixin/data/pdf-split"
+
+# OCR和翻译输出目录 - 生产环境路径
+PDF_OCR_OUTPUT_DIR="/opt/lixin/data/ocr"
+PDF_TRANSLATE_OUTPUT_DIR="/opt/lixin/data/translate"
+PDF_IMAGES_OUTPUT_DIR="/opt/lixin/data/images"
+
+# 日志和临时目录
+LOG_DIR="/var/log/lixin"
+TEMP_DIR="/tmp/lixin"
+
+# 安全配置
+# SESSION_SECRET="your-secret-key-here"
+# ADMIN_PASSWORD="your-admin-password"
