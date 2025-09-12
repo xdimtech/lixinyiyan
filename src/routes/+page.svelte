@@ -51,10 +51,11 @@
 				<p class="text-gray-600 mb-6 leading-relaxed">上传PDF文件，选择处理方式，开启智能翻译之旅</p>
 				<a
 					href="/upload"
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					style="color: white !important; text-decoration: none;"
 				>
 					开始上传
-					<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-4 h-4 ml-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
 					</svg>
 				</a>
@@ -73,10 +74,11 @@
 				<p class="text-gray-600 mb-6 leading-relaxed">实时查看处理进度，轻松下载翻译结果</p>
 				<a
 					href="/tasks"
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 font-medium rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					style="color: white !important; text-decoration: none;"
 				>
 					查看任务
-					<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-4 h-4 ml-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
 					</svg>
 				</a>
@@ -95,10 +97,11 @@
 				<p class="text-gray-600 mb-6 leading-relaxed">与AI助手智能对话，获得专业翻译建议</p>
 				<a
 					href="/chat"
-					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 font-medium rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+					style="color: white !important; text-decoration: none;"
 				>
 					开始对话
-					<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-4 h-4 ml-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
 					</svg>
 				</a>
