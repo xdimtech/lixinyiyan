@@ -303,6 +303,12 @@
 												下载
 											</button>
 										</form>
+										<a
+											href="/tasks/review/{task.id}"
+											class="text-green-600 hover:text-green-900"
+										>
+											去审核
+										</a>
 									{/if}
 									
 									{#if task.userId === data.currentUser?.id || data.currentUser?.role === 'admin'}
