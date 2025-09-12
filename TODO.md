@@ -12,3 +12,5 @@ meta_translate_output 和 meta_ocr_output 增加 page_number 字段
 
 审核页面，增加文本【复制】按钮
 
+压缩包没必要提前制作了，编辑后还需要重新压缩
+
