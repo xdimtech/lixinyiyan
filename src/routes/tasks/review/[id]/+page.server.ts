@@ -89,15 +89,21 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		for (let i = 1; i <= (task.pageNum || 0); i++) {
 			const pageNumStr = i.toString().padStart(3, '0');
 			
-			// 查找OCR结果
-			const ocrResult = ocrResults.find(ocr => 
-				ocr.inputFilePath?.includes(`page_${pageNumStr}`)
-			);
+			// 更精确的OCR结果匹配：确保完全匹配页码
+			const ocrResult = ocrResults.find(ocr => {
+				if (!ocr.inputFilePath) return false;
+				// 精确匹配：确保是page_XXX.png格式，避免page_001匹配到page_0011
+				const pagePattern = new RegExp(`page_${pageNumStr}\\.(png|jpg|jpeg)$`, 'i');
+				return pagePattern.test(ocr.inputFilePath);
+			});
 			
-			// 查找翻译结果
-			const translateResult = translateResults.find(trans => 
-				trans.inputFilePath?.includes(`page_${pageNumStr}`)
-			);
+			// 更精确的翻译结果匹配：通过OCR输出路径匹配
+			const translateResult = translateResults.find(trans => {
+				if (!trans.inputFilePath) return false;
+				// 翻译的输入文件应该是OCR的输出文件
+				const ocrPattern = new RegExp(`page_${pageNumStr}\\.txt$`, 'i');
+				return ocrPattern.test(trans.inputFilePath);
+			});
 
 			// 读取OCR文本
 			let ocrText = '';
@@ -122,6 +128,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			// 构建图片URL
 			const imagePath = join(imageBaseDir, `page_${pageNumStr}.png`);
 			const imageExists = await fs.access(imagePath).then(() => true).catch(() => false);
+			
+			// 添加调试日志以验证顺序对应
+			console.log(`Page ${i} mapping:`, {
+				pageNum: i,
+				imageExists,
+				hasOcr: !!ocrResult,
+				hasTranslation: !!translateResult,
+				ocrPath: ocrResult?.outputTxtPath,
+				translationPath: translateResult?.outputTxtPath
+			});
 			
 			pages.push({
 				pageNum: i,
