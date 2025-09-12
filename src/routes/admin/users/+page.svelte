@@ -298,35 +298,85 @@
 
 	<!-- 修改角色模态框 -->
 	{#if showRoleModal && selectedUser}
-		<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-			<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-				<h3 class="text-lg font-bold text-gray-900 mb-4">修改用户角色</h3>
-				<p class="text-sm text-gray-600 mb-4">用户: {selectedUser.username}</p>
-				
-				<form method="POST" action="?/updateRole" use:enhance={handleSubmit('updateRole')}>
-					<input type="hidden" name="userId" value={selectedUser.id} />
-					<div class="mb-4">
-						<label for="role-select" class="block text-sm font-medium text-gray-700 mb-2">选择角色</label>
-						<select id="role-select" name="role" value={selectedUser.role} class="w-full px-3 py-2 border border-gray-300 rounded-md">
-							{#each roleOptions as option}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
-					</div>
-					<div class="flex justify-end space-x-3">
+		<div 
+			class="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4 modal-overlay" 
+			on:click={closeModals}
+		on:keydown={(e: KeyboardEvent) => e.key === 'Escape' && closeModals()}
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="role-modal-title"
+		tabindex="-1"
+		>
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<div 
+				class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content" 
+				on:click={(e: Event) => e.stopPropagation()}
+				on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
+				role="document"
+			>
+				<div class="px-6 py-4 border-b border-gray-200">
+					<div class="flex items-center justify-between">
+						<h3 id="role-modal-title" class="text-lg font-semibold text-gray-900">修改用户角色</h3>
 						<button
 							type="button"
 							on:click={closeModals}
-							class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+							class="text-gray-400 hover:text-gray-600 transition-colors"
+							aria-label="关闭弹框"
+						>
+							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+				</div>
+				
+				<form method="POST" action="?/updateRole" use:enhance={handleSubmit('updateRole')}>
+					<div class="px-6 py-4">
+						<input type="hidden" name="userId" value={selectedUser.id} />
+						
+						<div class="mb-4">
+							<p class="text-sm text-gray-600 mb-4">
+								当前用户: <span class="font-medium text-gray-900">{selectedUser.username}</span>
+							</p>
+							<p class="text-sm text-gray-600 mb-4">
+								当前角色: <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 {getRoleInfo(selectedUser.role).color}">
+									{getRoleInfo(selectedUser.role).label}
+								</span>
+							</p>
+						</div>
+						
+						<div class="mb-6">
+							<label for="role-select" class="block text-sm font-medium text-gray-700 mb-2">选择新角色</label>
+							<select id="role-select" name="role" value={selectedUser.role} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+								{#each roleOptions as option}
+									<option value={option.value}>{option.label}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+					
+					<div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+						<button
+							type="button"
+							on:click={closeModals}
+							class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
 						>
 							取消
 						</button>
 						<button
 							type="submit"
 							disabled={loading}
-							class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+							class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center"
 						>
-							{loading ? '更新中...' : '确认修改'}
+							{#if loading}
+								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								更新中...
+							{:else}
+								确认修改
+							{/if}
 						</button>
 					</div>
 				</form>
@@ -336,41 +386,94 @@
 
 	<!-- 重置密码模态框 -->
 	{#if showPasswordModal && selectedUser}
-		<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-			<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-				<h3 class="text-lg font-bold text-gray-900 mb-4">重置用户密码</h3>
-				<p class="text-sm text-gray-600 mb-4">用户: {selectedUser.username}</p>
-				
-				<form method="POST" action="?/resetPassword" use:enhance={handleSubmit('resetPassword')}>
-					<input type="hidden" name="userId" value={selectedUser.id} />
-					<div class="mb-4">
-						<label for="new-password" class="block text-sm font-medium text-gray-700 mb-2">新密码</label>
-						<input
-							id="new-password"
-							type="password"
-							name="newPassword"
-							bind:value={newPassword}
-							placeholder="输入新密码..."
-							minlength="6"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md"
-							required
-						/>
-						<p class="text-xs text-gray-500 mt-1">密码长度至少6位</p>
-					</div>
-					<div class="flex justify-end space-x-3">
+		<div 
+			class="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4 modal-overlay" 
+			on:click={closeModals}
+		on:keydown={(e: KeyboardEvent) => e.key === 'Escape' && closeModals()}
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="password-modal-title"
+		tabindex="-1"
+		>
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<div 
+				class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content" 
+				on:click={(e: Event) => e.stopPropagation()}
+				on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
+				role="document"
+			>
+				<div class="px-6 py-4 border-b border-gray-200">
+					<div class="flex items-center justify-between">
+						<h3 id="password-modal-title" class="text-lg font-semibold text-gray-900">重置用户密码</h3>
 						<button
 							type="button"
 							on:click={closeModals}
-							class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+							class="text-gray-400 hover:text-gray-600 transition-colors"
+							aria-label="关闭弹框"
+						>
+							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+				</div>
+				
+				<form method="POST" action="?/resetPassword" use:enhance={handleSubmit('resetPassword')}>
+					<div class="px-6 py-4">
+						<input type="hidden" name="userId" value={selectedUser.id} />
+						
+						<div class="mb-4">
+							<p class="text-sm text-gray-600 mb-4">
+								目标用户: <span class="font-medium text-gray-900">{selectedUser.username}</span>
+							</p>
+							<div class="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+								<div class="flex">
+									<svg class="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+									</svg>
+									<p class="text-sm text-yellow-800">重置密码后，用户需要使用新密码重新登录</p>
+								</div>
+							</div>
+						</div>
+						
+						<div class="mb-6">
+							<label for="new-password" class="block text-sm font-medium text-gray-700 mb-2">新密码</label>
+							<input
+								id="new-password"
+								type="password"
+								name="newPassword"
+								bind:value={newPassword}
+								placeholder="输入新密码..."
+								minlength="6"
+								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+								required
+							/>
+							<p class="text-xs text-gray-500 mt-1">密码长度至少6位</p>
+						</div>
+					</div>
+					
+					<div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+						<button
+							type="button"
+							on:click={closeModals}
+							class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-500"
 						>
 							取消
 						</button>
 						<button
 							type="submit"
 							disabled={loading || !newPassword || newPassword.length < 6}
-							class="px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-md hover:bg-yellow-700 disabled:opacity-50"
+							class="px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-md hover:bg-yellow-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 flex items-center"
 						>
-							{loading ? '重置中...' : '确认重置'}
+							{#if loading}
+								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								重置中...
+							{:else}
+								确认重置
+							{/if}
 						</button>
 					</div>
 				</form>
@@ -380,30 +483,87 @@
 
 	<!-- 删除确认模态框 -->
 	{#if showDeleteModal && selectedUser}
-		<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-			<div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-				<h3 class="text-lg font-bold text-gray-900 mb-4">确认删除用户</h3>
-				<p class="text-sm text-gray-600 mb-4">
-					确定要删除用户 <strong>{selectedUser.username}</strong> 吗？
-				</p>
-				<p class="text-sm text-red-600 mb-4">此操作不可恢复，用户的所有数据将被删除。</p>
-				
-				<form method="POST" action="?/deleteUser" use:enhance={handleSubmit('deleteUser')}>
-					<input type="hidden" name="userId" value={selectedUser.id} />
-					<div class="flex justify-end space-x-3">
+		<div 
+			class="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4 modal-overlay" 
+			on:click={closeModals}
+		on:keydown={(e: KeyboardEvent) => e.key === 'Escape' && closeModals()}
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="delete-modal-title"
+		tabindex="-1"
+		>
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<div 
+				class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content" 
+				on:click={(e: Event) => e.stopPropagation()}
+				on:keydown={(e: KeyboardEvent) => e.stopPropagation()}
+				role="document"
+			>
+				<div class="px-6 py-4 border-b border-gray-200">
+					<div class="flex items-center justify-between">
+						<div class="flex items-center">
+							<svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+							</svg>
+							<h3 id="delete-modal-title" class="text-lg font-semibold text-gray-900">确认删除用户</h3>
+						</div>
 						<button
 							type="button"
 							on:click={closeModals}
-							class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+							class="text-gray-400 hover:text-gray-600 transition-colors"
+							aria-label="关闭弹框"
+						>
+							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+				</div>
+				
+				<form method="POST" action="?/deleteUser" use:enhance={handleSubmit('deleteUser')}>
+					<div class="px-6 py-4">
+						<input type="hidden" name="userId" value={selectedUser.id} />
+						
+						<div class="mb-4">
+							<p class="text-sm text-gray-600 mb-4">
+								确定要删除用户 <span class="font-medium text-gray-900">{selectedUser.username}</span> 吗？
+							</p>
+							<div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+								<div class="flex">
+									<svg class="w-5 h-5 text-red-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+									</svg>
+									<div>
+										<p class="text-sm text-red-800 font-medium">危险操作</p>
+										<p class="text-sm text-red-700 mt-1">此操作不可恢复，用户的所有数据将被删除。</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+						<button
+							type="button"
+							on:click={closeModals}
+							class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
 						>
 							取消
 						</button>
 						<button
 							type="submit"
 							disabled={loading}
-							class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+							class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center"
 						>
-							{loading ? '删除中...' : '确认删除'}
+							{#if loading}
+								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								删除中...
+							{:else}
+								确认删除
+							{/if}
 						</button>
 					</div>
 				</form>
@@ -429,5 +589,38 @@
 	/* 确保模态框在最上层 */
 	.z-50 {
 		z-index: 50;
+	}
+	
+	/* 模态框动画 */
+	.modal-overlay {
+		animation: fadeIn 0.15s ease-out;
+	}
+	
+	.modal-content {
+		animation: modalSlideIn 0.2s ease-out;
+		/* 防止渲染抖动 */
+		backface-visibility: hidden;
+		transform-style: preserve-3d;
+		will-change: opacity, transform;
+	}
+	
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	
+	@keyframes modalSlideIn {
+		from {
+			opacity: 0;
+			transform: scale(0.95) translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
 	}
 </style>
