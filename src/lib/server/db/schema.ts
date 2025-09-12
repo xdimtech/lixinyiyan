@@ -65,8 +65,21 @@ export const metaTranslateOutput = mysqlTable('meta_translate_output', {
 	isDeleted: tinyint('is_deleted').notNull().default(0)
 });
 
+// 提示词管理表
+export const metaPrompt = mysqlTable('meta_prompt', {
+	id: serial('id').primaryKey(),
+	prompt1: text('prompt1').notNull(), // OCR理解提示词
+	prompt2: text('prompt2').notNull(), // 翻译提示词
+	operator: varchar('operator', { length: 255 })
+		.notNull()
+		.references(() => user.id), // 记录最后谁更新了
+	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`)
+});
+
 export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;
 export type MetaParseTask = typeof metaParseTask.$inferSelect;
 export type MetaOcrOutput = typeof metaOcrOutput.$inferSelect;
 export type MetaTranslateOutput = typeof metaTranslateOutput.$inferSelect;
+export type MetaPrompt = typeof metaPrompt.$inferSelect;

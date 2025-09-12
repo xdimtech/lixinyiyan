@@ -22,6 +22,12 @@ export interface PathConfig {
   
   // 临时文件路径
   tempDir?: string;
+
+  // ocr endpoint
+  ocrEndpoint: string;
+  ocrModel: string;
+  translateEndpoint: string;
+  translateModel: string;
 }
 
 // 路径处理函数：支持 ~ 符号扩展
@@ -44,7 +50,11 @@ const pathConfigs: Record<Environment, PathConfig> = {
     translateOutputDir: 'uploads/translate',
     imagesOutputDir: 'uploads/images',
     logDir: 'logs',
-    tempDir: 'temp'
+    tempDir: 'temp',
+    ocrEndpoint: 'http://127.0.0.1:8002/v1',
+    ocrModel: 'Qwen/Qwen2.5-VL-7B-Instruct',
+    translateEndpoint: 'http://127.0.0.1:8003/v1',
+    translateModel: 'Qwen/Qwen3-14B-FP8'
   },
 
   // 测试环境 - 使用临时目录，便于清理
@@ -57,7 +67,11 @@ const pathConfigs: Record<Environment, PathConfig> = {
     translateOutputDir: '/tmp/lixin-test/translate',
     imagesOutputDir: '/tmp/lixin-test/images',
     logDir: '/tmp/lixin-test/logs',
-    tempDir: '/tmp/lixin-test/temp'
+    tempDir: '/tmp/lixin-test/temp',
+    ocrEndpoint: 'http://127.0.0.1:8002/v1',
+    ocrModel: 'Qwen/Qwen2.5-VL-7B-Instruct',
+    translateEndpoint: 'http://127.0.0.1:8003/v1',
+    translateModel: 'Qwen/Qwen3-14B-FP8'
   },
 
   // 生产环境 - 使用标准的系统目录
@@ -70,7 +84,11 @@ const pathConfigs: Record<Environment, PathConfig> = {
     translateOutputDir: '/opt/lixin/data/translate',
     imagesOutputDir: '/opt/lixin/data/images',
     logDir: '/var/log/lixin',
-    tempDir: '/tmp/lixin'
+    tempDir: '/tmp/lixin',
+    ocrEndpoint: 'http://127.0.0.1:8002/v1',
+    ocrModel: 'Qwen/Qwen2.5-VL-7B-Instruct',
+    translateEndpoint: 'http://127.0.0.1:8003/v1',
+    translateModel: 'Qwen/Qwen3-14B-FP8'
   },
 
   // Docker环境 - 使用容器内路径
@@ -83,7 +101,11 @@ const pathConfigs: Record<Environment, PathConfig> = {
     translateOutputDir: '/app/data/translate',
     imagesOutputDir: '/app/data/images',
     logDir: '/app/logs',
-    tempDir: '/app/temp'
+    tempDir: '/app/temp',
+    ocrEndpoint: 'http://127.0.0.1:8002/v1',
+    ocrModel: 'Qwen/Qwen2.5-VL-7B-Instruct',
+    translateEndpoint: 'http://127.0.0.1:8003/v1',
+    translateModel: 'Qwen/Qwen3-14B-FP8'
   }
 };
 
@@ -160,7 +182,11 @@ export function getPathConfig(): PathConfig {
     ocrZipOutputDir: expandPath(finalConfig.ocrZipOutputDir),
     translateZipOutputDir: expandPath(finalConfig.translateZipOutputDir),
     logDir: finalConfig.logDir ? expandPath(finalConfig.logDir) : undefined,
-    tempDir: finalConfig.tempDir ? expandPath(finalConfig.tempDir) : undefined
+    tempDir: finalConfig.tempDir ? expandPath(finalConfig.tempDir) : undefined,
+    ocrEndpoint: finalConfig.ocrEndpoint,
+    ocrModel: finalConfig.ocrModel,
+    translateEndpoint: finalConfig.translateEndpoint,
+    translateModel: finalConfig.translateModel
   };
   
   return expandedConfig;
@@ -184,7 +210,10 @@ export function initializePathConfig(): PathConfig {
   console.log('  OCR输出目录:', config.ocrOutputDir);
   console.log('  翻译输出目录:', config.translateOutputDir);
   console.log('  图片输出目录:', config.imagesOutputDir);
-  
+  console.log('  OCR endpoint:', config.ocrEndpoint);
+  console.log('  OCR model:', config.ocrModel);
+  console.log('  Translate endpoint:', config.translateEndpoint);
+  console.log('  Translate model:', config.translateModel);
   if (config.logDir) {
     console.log('  日志目录:', config.logDir);
   }
@@ -211,5 +240,9 @@ export const {
   translateZipOutputDir,
   imagesOutputDir,
   logDir,
-  tempDir
+  tempDir,
+  ocrEndpoint,
+  ocrModel,
+  translateEndpoint,
+  translateModel
 } = pathConfig;

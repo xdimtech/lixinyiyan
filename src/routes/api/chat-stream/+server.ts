@@ -1,10 +1,15 @@
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
 import OpenAI from 'openai';
+import { initializePathConfig } from '$lib/config/paths';
+
+const config = initializePathConfig();
 
 // 从PRD中的配置
-const TRANSLATE_API_URL = "http://127.0.0.1:8003/v1";
-const TRANSLATE_MODEL = "Qwen/Qwen3-14B-FP8";
+const TRANSLATE_API_URL = config.translateEndpoint;
+const TRANSLATE_MODEL = config.translateModel;
+const OCR_API_URL = config.ocrEndpoint;
+const OCR_MODEL = config.ocrModel;
 
 const DEFAULT_SYSTEM_PROMPT = `# 角色
 您是一位民国时期的翻译专家，擅长将英文文本翻译为民国时期的表达风格。
@@ -38,11 +43,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!message || typeof message !== 'string') {
 		throw error(400, { message: '请输入消息内容' });
 	}
-
-	const client = new OpenAI({
-		apiKey: "EMPTY",
-		baseURL: TRANSLATE_API_URL,
-	});
 
 	// 构建消息历史
 	const messages: any[] = [];
@@ -99,6 +99,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// 添加当前用户消息
 	let currentUserMessage: any;
+	let useModel = TRANSLATE_MODEL
+	let useApiUrl = TRANSLATE_API_URL
 	if (image && imageType) {
 		// 当前消息包含图片
 		currentUserMessage = {
@@ -117,6 +119,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				}
 			]
 		};
+		useModel = OCR_MODEL
+		useApiUrl = OCR_API_URL
 	} else {
 		// 纯文本消息
 		currentUserMessage = {
@@ -128,13 +132,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	console.log('messages', messages);
 
+
+	const client = new OpenAI({
+		apiKey: "EMPTY",
+		baseURL: useApiUrl,
+	});
+
 	try {
 		// 创建一个ReadableStream来处理流式输出
 		const stream = new ReadableStream({
 			async start(controller) {
 				try {
 					const chatResponse = await (client.chat.completions.create as any)({
-						model: TRANSLATE_MODEL,
+						model: useModel,
 						temperature: 0.7,
 						top_p: 0.8,
 						max_tokens: 4096,
