@@ -14,7 +14,8 @@
 			completion_tokens: number,
 			total_tokens: number
 		},
-		isLoading?: boolean
+		isLoading?: boolean,
+		isStreaming?: boolean
 	}> = [];
 	let systemPrompt = '';
 	let currentMessage = '';
@@ -49,56 +50,122 @@
 		}
 	};
 
-	const handleSubmit = () => {
+	// 流式聊天函数
+	const handleStreamChat = async () => {
 		if (!currentMessage.trim()) return;
 		
 		// 立即显示用户消息
 		const userMessage = currentMessage.trim();
+		const newChatIndex = chatHistory.length;
+		
 		chatHistory = [...chatHistory, {
 			user: userMessage,
 			assistant: '',
-			isLoading: true
+			reasoningContent: '',
+			isLoading: true,
+			isStreaming: true
 		}];
 		currentMessage = '';
 		scrollToBottom();
 		
 		isLoading = true;
-		return async ({ result }: any) => {
-			isLoading = false;
-			console.log('Submit result:', result);
-			
-			if (result.type === 'success' && result.data?.success) {
-				console.log('Success! Updating chat history with AI response:', result.data);
-				// 更新最后一条消息，添加AI回复
-				chatHistory = chatHistory.map((chat, index) => {
-					if (index === chatHistory.length - 1) {
-						return {
-							...chat,
-							assistant: result.data.response,
-							reasoningContent: result.data.reasoningContent,
-							usage: result.data.usage,
-							isLoading: false
-						};
-					}
-					return chat;
-				});
-				scrollToBottom();
-			} else {
-				console.log('Submit not successful:', result);
-				// 如果失败，移除loading状态或显示错误
-				chatHistory = chatHistory.map((chat, index) => {
-					if (index === chatHistory.length - 1) {
-						return {
-							...chat,
-							assistant: '抱歉，发生了错误。请重试。',
-							isLoading: false
-						};
-					}
-					return chat;
-				});
+		
+		try {
+			const response = await fetch('/api/chat-stream', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					message: userMessage,
+					systemPrompt: systemPrompt,
+					chatHistory: chatHistory.slice(0, -1) // 不包含当前正在处理的消息
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error('网络请求失败');
 			}
-		};
+
+			const reader = response.body?.getReader();
+			if (!reader) {
+				throw new Error('无法读取响应流');
+			}
+
+			const decoder = new TextDecoder();
+			
+			while (true) {
+				const { done, value } = await reader.read();
+				
+				if (done) break;
+				
+				const chunk = decoder.decode(value);
+				const lines = chunk.split('\n').filter(line => line.trim());
+				
+				for (const line of lines) {
+					try {
+						const data = JSON.parse(line);
+						
+						// 更新对应的聊天记录
+						chatHistory = chatHistory.map((chat, index) => {
+							if (index === newChatIndex) {
+								if (data.type === 'reasoning') {
+									return {
+										...chat,
+										reasoningContent: data.fullReasoning
+									};
+								} else if (data.type === 'content') {
+									return {
+										...chat,
+										assistant: data.fullContent
+									};
+								} else if (data.type === 'complete') {
+									return {
+										...chat,
+										assistant: data.fullContent,
+										reasoningContent: data.fullReasoning,
+										usage: data.usage,
+										isLoading: false,
+										isStreaming: false
+									};
+								} else if (data.type === 'error') {
+									return {
+										...chat,
+										assistant: `错误: ${data.message}`,
+										isLoading: false,
+										isStreaming: false
+									};
+								}
+							}
+							return chat;
+						});
+						
+						// 实时滚动到底部
+						scrollToBottom();
+					} catch (e) {
+						console.error('解析流数据失败:', e);
+					}
+				}
+			}
+		} catch (error) {
+			console.error('流式聊天失败:', error);
+			// 更新错误状态
+			chatHistory = chatHistory.map((chat, index) => {
+				if (index === newChatIndex) {
+					return {
+						...chat,
+						assistant: '抱歉，发生了错误。请重试。',
+						isLoading: false,
+						isStreaming: false
+					};
+				}
+				return chat;
+			});
+		} finally {
+			isLoading = false;
+		}
 	};
+
 
 	const clearChat = () => {
 		chatHistory = [];
@@ -200,7 +267,7 @@
 							<!-- AI回复 -->
 							<div class="flex justify-start">
 								<div class="max-w-xs lg:max-w-2xl bg-gray-100 text-gray-900 rounded-lg px-4 py-2 space-y-3">
-									{#if chat.isLoading}
+									{#if chat.isLoading && !chat.isStreaming}
 										<!-- Loading状态 -->
 										<div class="flex items-center space-x-2">
 											<svg class="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -209,45 +276,64 @@
 											</svg>
 											<span class="text-sm text-gray-500">AI正在思考中...</span>
 										</div>
-									{:else}
-										<!-- 推理过程 -->
-										{#if chat.reasoningContent}
-											<div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-												<div class="flex items-center mb-2">
-													<svg class="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-													</svg>
-													<span class="text-sm font-medium text-blue-800">思考过程</span>
-												</div>
-												<div class="text-sm text-blue-700 whitespace-pre-wrap font-mono bg-blue-25 p-2 rounded">
-													{chat.reasoningContent}
-												</div>
+									{:else if chat.isStreaming}
+										<!-- 流式输出状态 -->
+										<div class="flex items-center space-x-2">
+											<div class="flex space-x-1">
+												<div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+												<div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+												<div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
 											</div>
-										{/if}
-										
-										<!-- 主要回复 -->
-										{#if chat.assistant}
-											<div class="text-sm">
-												{@html formatMessage(chat.assistant)}
+											<span class="text-sm text-blue-600">正在生成回复...</span>
+										</div>
+									{/if}
+									
+									<!-- 推理过程 (流式输出时也显示) -->
+									{#if chat.reasoningContent}
+										<div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+											<div class="flex items-center mb-2">
+												<svg class="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+												</svg>
+												<span class="text-sm font-medium text-blue-800">思考过程</span>
+												{#if chat.isStreaming}
+													<span class="ml-2 text-xs text-blue-600 animate-pulse">实时生成中...</span>
+												{/if}
 											</div>
-										{/if}
-										
-										<!-- Usage信息 -->
-										{#if chat.usage}
-											<div class="bg-gray-50 border border-gray-200 p-2 rounded text-xs text-gray-600">
-												<div class="flex items-center mb-1">
-													<svg class="w-3 h-3 text-gray-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-													</svg>
-													<span class="font-medium">Token使用统计</span>
-												</div>
-												<div class="flex space-x-4 text-xs">
-													<span>输入: {chat.usage.prompt_tokens}</span>
-													<span>输出: {chat.usage.completion_tokens}</span>
-													<span>总计: {chat.usage.total_tokens}</span>
-												</div>
+											<div class="text-sm text-blue-700 whitespace-pre-wrap font-mono bg-blue-25 p-2 rounded">
+												{chat.reasoningContent}
+												{#if chat.isStreaming}
+													<span class="inline-block w-2 h-4 bg-blue-600 animate-pulse ml-1">|</span>
+												{/if}
 											</div>
-										{/if}
+										</div>
+									{/if}
+									
+									<!-- 主要回复 (流式输出时也显示) -->
+									{#if chat.assistant}
+										<div class="text-sm">
+											{@html formatMessage(chat.assistant)}
+											{#if chat.isStreaming}
+												<span class="inline-block w-2 h-4 bg-gray-600 animate-pulse ml-1">|</span>
+											{/if}
+										</div>
+									{/if}
+									
+									<!-- Usage信息 (完成后显示) -->
+									{#if chat.usage && !chat.isStreaming}
+										<div class="bg-gray-50 border border-gray-200 p-2 rounded text-xs text-gray-600">
+											<div class="flex items-center mb-1">
+												<svg class="w-3 h-3 text-gray-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+												</svg>
+												<span class="font-medium">Token使用统计</span>
+											</div>
+											<div class="flex space-x-4 text-xs">
+												<span>输入: {chat.usage.prompt_tokens}</span>
+												<span>输出: {chat.usage.completion_tokens}</span>
+												<span>总计: {chat.usage.total_tokens}</span>
+											</div>
+										</div>
 									{/if}
 								</div>
 							</div>
@@ -258,14 +344,9 @@
 
 			<!-- 输入区域 -->
 			<form 
-				method="POST" 
-				action="?/chat" 
-				use:enhance={handleSubmit}
+				on:submit|preventDefault={handleStreamChat}
 				class="bg-white rounded-lg shadow-sm p-4"
 			>
-				<input type="hidden" name="systemPrompt" value={systemPrompt} />
-				<input type="hidden" name="chatHistory" value={JSON.stringify(chatHistory)} />
-				
 				<div class="flex space-x-4">
 					<div class="flex-1">
 						<textarea

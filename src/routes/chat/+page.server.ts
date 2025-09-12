@@ -42,7 +42,7 @@ export const actions: Actions = {
 				content: currentSystemPrompt
 			});
 
-			// 添加历史对话
+			// 不使用历史对轮对话，每次都是单轮对话
 			// if (chatHistory && typeof chatHistory === 'string') {
 			// 	try {
 			// 		const history = JSON.parse(chatHistory);
@@ -82,6 +82,7 @@ export const actions: Actions = {
 					"top_k": 20, 
 					"chat_template_kwargs": {"enable_thinking": true},
 				},
+				stream: false,
 			});
 
 			const resp_message = chatResponse.choices[0].message as any;
