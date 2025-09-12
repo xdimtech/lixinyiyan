@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const body = await request.json();
-	const { message, systemPrompt, chatHistory } = body;
+	const { message, image, imageType, systemPrompt, chatHistory } = body;
 
 	if (!message || typeof message !== 'string') {
 		throw error(400, { message: '请输入消息内容' });
@@ -38,27 +38,78 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		content: currentSystemPrompt
 	});
 
-	// 添加历史对话
-	if (chatHistory && Array.isArray(chatHistory)) {
-		for (const item of chatHistory) {
-			if (item.user && item.assistant) {
-				messages.push({
-					role: "user",
-					content: item.user
-				});
-				messages.push({
-					role: "assistant",
-					content: item.assistant
-				});
-			}
-		}
-	}
+	// 禁止添加历史对话
+	// if (chatHistory && Array.isArray(chatHistory)) {
+	// 	for (const item of chatHistory) {
+	// 		if (item.user && item.assistant) {
+	// 			// 构建用户消息，可能包含图片
+	// 			let userMessage: any;
+	// 			if (item.userImage && item.userImageType) {
+	// 				// 用户消息包含图片
+	// 				userMessage = {
+	// 					role: "user",
+	// 					content: [
+	// 						{
+	// 							type: "text",
+	// 							text: item.user
+	// 						},
+	// 						{
+	// 							type: "image_url",
+	// 							image_url: {
+	// 								url: `data:${item.userImageType};base64,${item.userImage}`
+	// 							}
+	// 						}
+	// 					]
+	// 				};
+	// 			} else {
+	// 				// 纯文本用户消息
+	// 				userMessage = {
+	// 					role: "user",
+	// 					content: item.user
+	// 				};
+	// 			}
+				
+	// 			messages.push(userMessage);
+	// 			messages.push({
+	// 				role: "assistant",
+	// 				content: item.assistant
+	// 			});
+	// 		}
+	// 	}
+	// }
 
 	// 添加当前用户消息
-	messages.push({
-		role: "user",
-		content: message
-	});
+	let currentUserMessage: any;
+	if (image && imageType) {
+		// 当前消息包含图片
+		currentUserMessage = {
+			role: "user",
+			content: [
+				{
+					type: "text",
+					text: message
+				},
+				{
+					type: "image_url",
+					image_url: {
+						url: `data:${imageType};base64,${image}`,
+						detail: "low"
+					}
+				}
+			]
+		};
+	} else {
+		// 纯文本消息
+		currentUserMessage = {
+			role: "user",
+			content: message
+		};
+	}
+	messages.push(currentUserMessage);
+
+	// 调试日志
+	console.log('发送到模型的消息:', JSON.stringify(messages, null, 2));
+	console.log('是否包含图片:', !!image);
 
 	try {
 		// 创建一个ReadableStream来处理流式输出

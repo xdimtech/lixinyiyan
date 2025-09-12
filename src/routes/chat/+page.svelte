@@ -7,6 +7,8 @@
 
 	let chatHistory: Array<{
 		user: string, 
+		userImage?: string, // base64编码的图片数据
+		userImageType?: string, // 图片MIME类型
 		assistant: string,
 		reasoningContent?: string,
 		usage?: {
@@ -26,6 +28,9 @@
 	let currentMessage = '';
 	let isLoading = false;
 	let chatContainer: HTMLElement;
+	let selectedImage: File | null = null;
+	let imagePreviewUrl: string = '';
+	let fileInput: HTMLInputElement;
 
 	// 预设的系统提示词选项
 	const presetPrompts = [
@@ -68,14 +73,33 @@
 		const userMessage = currentMessage.trim();
 		const newChatIndex = chatHistory.length;
 		
+		// 处理图片数据
+		let imageBase64 = '';
+		let imageType = '';
+		if (selectedImage) {
+			try {
+				imageBase64 = await convertImageToBase64(selectedImage);
+				imageType = selectedImage.type;
+			} catch (error) {
+				console.error('图片转换失败:', error);
+				alert('图片处理失败，请重试');
+				return;
+			}
+		}
+		
 		chatHistory = [...chatHistory, {
 			user: userMessage,
+			userImage: imageBase64 || undefined,
+			userImageType: imageType || undefined,
 			assistant: '',
 			reasoningContent: '',
 			isLoading: true,
 			isStreaming: true
 		}];
 		currentMessage = '';
+		
+		// 清除图片选择
+		removeImage();
 		
 		// 确保用户消息显示后立即滚动
 		await tick();
@@ -91,6 +115,8 @@
 				},
 				body: JSON.stringify({
 					message: userMessage,
+					image: imageBase64 || undefined,
+					imageType: imageType || undefined,
 					systemPrompt: systemPrompt,
 					chatHistory: chatHistory.slice(0, -1) // 不包含当前正在处理的消息
 				})
@@ -198,6 +224,71 @@
 			.replace(/\n/g, '<br>')
 			.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-2 rounded"><code>$1</code></pre>');
 	};
+
+	// 复制到剪贴板功能
+	const copyToClipboard = async (text: string, type: string = '内容') => {
+		try {
+			await navigator.clipboard.writeText(text);
+			// 可以添加一个简单的提示，这里先用alert
+			alert(`${type}已复制到剪贴板！`);
+		} catch (err) {
+			console.error('复制失败:', err);
+			alert('复制失败，请手动复制');
+		}
+	};
+
+	// 处理图片上传
+	const handleImageSelect = (event: Event) => {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		
+		if (file) {
+			// 检查文件类型
+			if (!file.type.startsWith('image/')) {
+				alert('请选择图片文件');
+				return;
+			}
+			
+			// 检查文件大小 (限制为5MB)
+			if (file.size > 5 * 1024 * 1024) {
+				alert('图片文件大小不能超过5MB');
+				return;
+			}
+			
+			selectedImage = file;
+			
+			// 创建预览URL
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				imagePreviewUrl = e.target?.result as string;
+			};
+			reader.readAsDataURL(file);
+		}
+	};
+
+	// 移除选中的图片
+	const removeImage = () => {
+		selectedImage = null;
+		imagePreviewUrl = '';
+		if (fileInput) {
+			fileInput.value = '';
+		}
+	};
+
+	// 转换图片为base64
+	const convertImageToBase64 = (file: File): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => {
+				const base64 = reader.result as string;
+				// 移除data:image/jpeg;base64,前缀，只保留base64编码
+				const base64Data = base64.split(',')[1];
+				resolve(base64Data);
+			};
+			reader.onerror = reject;
+			reader.readAsDataURL(file);
+		});
+	};
 </script>
 
 <svelte:head>
@@ -263,14 +354,35 @@
 						{#each chatHistory as chat}
 							<!-- 用户消息 -->
 							<div class="flex justify-end">
-								<div class="max-w-xs lg:max-w-2xl bg-gradient-to-r from-blue-100 to-sky-100 text-gray-800 border border-blue-200 rounded-2xl rounded-br-md px-5 py-4 shadow-lg">
+								<div class="max-w-xs lg:max-w-2xl bg-gradient-to-r from-blue-100 to-sky-100 text-gray-800 border border-blue-200 rounded-2xl rounded-br-md px-5 py-4 shadow-lg relative group">
+									<!-- 用户上传的图片 -->
+									{#if chat.userImage}
+										<div class="mb-3">
+											<img 
+												src="data:{chat.userImageType};base64,{chat.userImage}" 
+												alt="用户上传的图片" 
+												class="max-w-full max-h-48 rounded-lg border border-blue-300 shadow-sm"
+											/>
+										</div>
+									{/if}
 									<div class="text-sm">{chat.user}</div>
+									<!-- 复制按钮 -->
+									<button
+										on:click={() => copyToClipboard(chat.user, '用户消息')}
+										class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 bg-white/80 hover:bg-white rounded-md shadow-sm border border-blue-300 hover:border-blue-400"
+										title="复制消息"
+										aria-label="复制用户消息"
+									>
+										<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+										</svg>
+									</button>
 								</div>
 							</div>
 							
 							<!-- AI回复 -->
 							<div class="flex justify-start">
-								<div class="max-w-xs lg:max-w-2xl bg-white/90 backdrop-blur-sm text-gray-900 rounded-2xl rounded-bl-md px-5 py-4 space-y-3 shadow-lg border border-gray-200/50">
+								<div class="max-w-xs lg:max-w-2xl bg-white/90 backdrop-blur-sm text-gray-900 rounded-2xl rounded-bl-md px-5 py-4 space-y-3 shadow-lg border border-gray-200/50 relative group">
 									{#if chat.isLoading && !chat.isStreaming}
 										<!-- Loading状态 -->
 										<div class="flex items-center space-x-2">
@@ -315,27 +427,53 @@
 									
 									<!-- 主要回复 (流式输出时也显示) -->
 									{#if chat.assistant}
-										<div class="text-sm">
-											{@html formatMessage(chat.assistant)}
-											{#if chat.isStreaming}
-												<span class="inline-block w-2 h-4 bg-gray-600 animate-pulse ml-1">|</span>
+										<div class="relative">
+											<div class="text-sm">
+												{@html formatMessage(chat.assistant)}
+												{#if chat.isStreaming}
+													<span class="inline-block w-2 h-4 bg-gray-600 animate-pulse ml-1">|</span>
+												{/if}
+											</div>
+											<!-- 复制模型输出按钮 (仅在完成后显示) -->
+											{#if !chat.isStreaming && !chat.isLoading}
+												<button
+													on:click={() => copyToClipboard(chat.assistant, 'AI回复')}
+													class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-md shadow-sm border border-gray-300 hover:border-gray-400"
+													title="复制AI回复"
+													aria-label="复制AI回复内容"
+												>
+													<svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+													</svg>
+												</button>
 											{/if}
 										</div>
 									{/if}
 									
 									<!-- Usage信息 (完成后显示) -->
 									{#if chat.usage && !chat.isStreaming}
-										<div class="bg-gray-50 border border-gray-200 p-2 rounded text-xs text-gray-600">
-											<div class="flex items-center mb-1">
-												<svg class="w-3 h-3 text-gray-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-												</svg>
-												<span class="font-medium">Token使用统计</span>
+										<div class="bg-gradient-to-r from-slate-50 to-gray-50 border border-slate-200 p-3 rounded-lg shadow-sm">
+											<div class="flex items-center justify-between mb-2">
+												<div class="flex items-center">
+													<svg class="w-4 h-4 text-slate-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+													</svg>
+													<span class="text-sm font-semibold text-slate-700">Token使用统计</span>
+												</div>
+												<!-- 总计标记 -->
+												<div class="bg-slate-200 px-2 py-1 rounded-full">
+													<span class="text-xs font-bold text-slate-700">{chat.usage.total_tokens} 总计</span>
+												</div>
 											</div>
-											<div class="flex space-x-4 text-xs">
-												<span>输入: {chat.usage.prompt_tokens}</span>
-												<span>输出: {chat.usage.completion_tokens}</span>
-												<span>总计: {chat.usage.total_tokens}</span>
+											<div class="grid grid-cols-2 gap-3 text-sm">
+												<div class="bg-white/70 p-2 rounded border border-slate-100">
+													<div class="text-xs text-slate-500 mb-1">输入Token</div>
+													<div class="font-semibold text-slate-700">{chat.usage.prompt_tokens}</div>
+												</div>
+												<div class="bg-white/70 p-2 rounded border border-slate-100">
+													<div class="text-xs text-slate-500 mb-1">输出Token</div>
+													<div class="font-semibold text-slate-700">{chat.usage.completion_tokens}</div>
+												</div>
 											</div>
 										</div>
 									{/if}
@@ -352,16 +490,92 @@
 					on:submit|preventDefault={handleStreamChat}
 					class="bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 p-6"
 				>
+				<!-- 图片预览区域 -->
+				{#if imagePreviewUrl}
+					<div class="mb-4 flex items-start space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+						<div class="relative">
+							<img 
+								src={imagePreviewUrl} 
+								alt="预览图片" 
+								class="w-16 h-16 object-cover rounded-lg border border-gray-300 shadow-sm"
+							/>
+							<button
+								type="button"
+								on:click={removeImage}
+								class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-lg transition-colors duration-200"
+								aria-label="移除图片"
+							>
+								<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+								</svg>
+							</button>
+						</div>
+						<div class="flex-1 min-w-0">
+							<p class="text-sm font-medium text-gray-900 truncate">{selectedImage?.name}</p>
+							<p class="text-xs text-gray-500 mt-1">
+								{selectedImage ? Math.round(selectedImage.size / 1024) : 0} KB
+							</p>
+							<div class="flex items-center mt-2">
+								<svg class="w-4 h-4 text-amber-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+								</svg>
+								<span class="text-xs text-amber-600">仅作为上下文参考</span>
+							</div>
+						</div>
+					</div>
+				{/if}
+				
 				<div class="flex space-x-5">
 					<div class="flex-1">
-						<textarea
-							name="message"
-							bind:value={currentMessage}
-							placeholder="输入您的消息..."
-							rows="3"
-							disabled={isLoading}
-							class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none bg-white/80 backdrop-blur-sm transition-all duration-200 text-gray-800 placeholder-gray-400"
-						></textarea>
+						<!-- 消息输入框容器 -->
+						<div class="relative">
+							<textarea
+								name="message"
+								bind:value={currentMessage}
+								placeholder="描述你的问题，使用Shift+Enter换行"
+								rows="3"
+								disabled={isLoading}
+								class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none bg-white/80 backdrop-blur-sm transition-all duration-200 text-gray-800 placeholder-gray-400"
+							></textarea>
+							
+							<!-- 图片上传图标 (放在输入框右下角) -->
+							<div class="absolute bottom-2 right-2">
+								<input
+									type="file"
+									accept="image/*"
+									on:change={handleImageSelect}
+									bind:this={fileInput}
+									class="hidden"
+									id="image-upload"
+								/>
+								<label
+									for="image-upload"
+									class="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200"
+									title="上传图片"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+									</svg>
+								</label>
+							</div>
+						</div>
+						
+						<!-- 图片状态提示 -->
+						{#if selectedImage}
+							<div class="flex items-center justify-between mt-2 text-xs">
+								<span class="text-green-600">📎 {selectedImage.name}</span>
+								<button
+									on:click={removeImage}
+									class="text-gray-400 hover:text-red-500 transition-colors duration-200"
+									title="移除图片"
+									aria-label="移除图片"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							</div>
+						{/if}
 					</div>
 					<div class="flex flex-col justify-end space-y-3">
 						<button
