@@ -199,7 +199,29 @@ bun run preview
 ```
 
 ### 环境变量配置
-创建 `.env` 文件配置以下变量：
+
+系统支持**多环境自动配置**，根据 `NODE_ENV` 自动选择合适的路径配置：
+
+- **开发环境** (`NODE_ENV=development`)：使用相对路径 `uploads/`
+- **测试环境** (`NODE_ENV=test`)：使用临时目录 `/tmp/lixin-test/`
+- **生产环境** (`NODE_ENV=production`)：使用系统目录 `/opt/lixin/data/`
+- **Docker环境** (`DOCKER_ENV=true`)：使用容器路径 `/app/data/`
+
+#### 快速配置示例
+
+复制对应环境的配置文件：
+```bash
+# 开发环境
+cp config/environments/development.example .env
+
+# 生产环境  
+cp config/environments/production.example .env
+
+# Docker环境
+cp config/environments/docker.example .env
+```
+
+#### 手动配置 .env 文件
 ```env
 # 数据库配置
 DATABASE_URL="mysql://user:password@localhost:3306/database"
@@ -208,26 +230,16 @@ DATABASE_URL="mysql://user:password@localhost:3306/database"
 OCR_API_URL="http://127.0.0.1:8002/v1"
 TRANSLATE_API_URL="http://127.0.0.1:8003/v1"
 
-# PDF文件存储目录配置
-PDF_UPLOAD_DIR="uploads/files"
-PDF_OUTPUT_DIR="uploads/pdf-split"
+# 环境设置（会自动选择对应的路径配置）
+NODE_ENV=development  # development | test | production
 
-# OCR和翻译输出目录配置（新增）
-# 开发环境示例
-PDF_OCR_OUTPUT_DIR="uploads/ocr"
-PDF_TRANSLATE_OUTPUT_DIR="uploads/translate" 
-PDF_IMAGES_OUTPUT_DIR="uploads/images"
-
-# 生产环境示例（支持~路径扩展）
+# 可选：环境变量覆盖默认路径配置
 # PDF_OCR_OUTPUT_DIR="~/data/lixin/ocr"
 # PDF_TRANSLATE_OUTPUT_DIR="~/data/lixin/translate"
 # PDF_IMAGES_OUTPUT_DIR="~/data/lixin/images"
-
-# 或使用绝对路径
-# PDF_OCR_OUTPUT_DIR="/opt/lixin/data/ocr"
-# PDF_TRANSLATE_OUTPUT_DIR="/opt/lixin/data/translate"
-# PDF_IMAGES_OUTPUT_DIR="/opt/lixin/data/images"
 ```
+
+详细配置说明请参考 [CONFIG_GUIDE.md](./CONFIG_GUIDE.md)
 
 ## 注意事项
 
