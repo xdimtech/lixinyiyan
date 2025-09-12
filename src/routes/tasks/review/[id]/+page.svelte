@@ -341,19 +341,19 @@
 <!-- 图片放大模态框 -->
 {#if showImageModal}
 	<div 
-		class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+		class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
 		on:click={closeImageModal}
 		on:keydown={(e: KeyboardEvent) => e.key === 'Escape' && closeImageModal()}
 		role="dialog"
 		aria-modal="true"
 		tabindex="-1"
 	>
-		<div class="relative max-w-full max-h-full p-4">
+		<div class="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center">
 			<!-- 关闭按钮 -->
 			<button
 				type="button"
 				on:click={closeImageModal}
-				class="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 z-10"
+				class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 z-10 transition-all"
 				title="关闭"
 				aria-label="关闭图片放大视图"
 			>
@@ -363,21 +363,23 @@
 			</button>
 			
 			<!-- 页面标题 -->
-			<div class="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+			<div class="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm z-10">
 				第 {modalPageNum} 页
 			</div>
 			
-			<!-- 放大的图片 -->
+			<!-- 放大的图片容器 -->
 			<button
 				type="button"
-				class="max-w-full max-h-full"
+				class="w-full h-full flex items-center justify-center bg-transparent border-none p-0 m-0"
 				on:click|stopPropagation
-				aria-label="图片内容区域"
+				on:keydown={(e: KeyboardEvent) => e.key === 'Enter' && e.stopPropagation()}
+				aria-label="图片内容，点击可防止关闭"
 			>
 				<img
 					src={modalImageUrl}
 					alt="第{modalPageNum}页放大图"
-					class="max-w-full max-h-full object-contain rounded-lg"
+					class="max-w-full max-h-full object-contain rounded-lg shadow-2xl pointer-events-none"
+					style="max-width: min(90vw, 1200px); max-height: min(85vh, 900px);"
 				/>
 			</button>
 		</div>
