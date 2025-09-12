@@ -152,16 +152,18 @@ export const actions = {
 		const taskId = formData.get('taskId') as string;
 		const storedFileName = formData.get('storedFileName') as string;
 		const dateDir = formData.get('dateDir') as string;
+		const originalFileName = formData.get('originalFileName') as string;
 		const selectedPages = formData.get('selectedPages') as string;
 
-		console.log('Export request received:', { taskId, storedFileName, dateDir, selectedPages }); // 调试日志
+		console.log('Export request received:', { taskId, storedFileName, dateDir, originalFileName, selectedPages }); // 调试日志
 
-		if (!taskId || !selectedPages || !storedFileName || !dateDir) {
+		if (!taskId || !selectedPages || !storedFileName || !dateDir || !originalFileName) {
 			console.log('Missing parameters:', { 
 				taskId: !!taskId, 
 				selectedPages: !!selectedPages,
 				storedFileName: !!storedFileName,
-				dateDir: !!dateDir
+				dateDir: !!dateDir,
+				originalFileName: !!originalFileName
 			});
 			return fail(400, { message: '参数不完整' });
 		}
@@ -179,8 +181,8 @@ export const actions = {
 				return fail(404, { message: '原PDF文件不存在' });
 			}
 			
-			// 使用真正的PDF重新生成功能
-			await createPdfFromPages(originalPdfPath, pages, taskId);
+			// 使用真正的PDF重新生成功能，传递原文件名用于生成导出文件名
+			await createPdfFromPages(originalPdfPath, pages, taskId, originalFileName);
 			
 			return {
 				success: true,

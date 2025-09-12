@@ -1,7 +1,8 @@
 import { promises as fs } from 'fs';
-import { join, dirname, basename, extname } from 'path';
+import { join, dirname, basename, extname, parse } from 'path';
 import * as mupdf from 'mupdf';
 import { PDFDocument } from 'pdf-lib';
+import crypto from 'crypto';
 
 export interface PageImage {
     id: number;
@@ -80,9 +81,20 @@ export async function splitPdfToImages(pdfFilePath: string, taskId: string): Pro
  * 根据选中的页面重新生成PDF
  * 使用PDF-lib库实现真正的页面提取和重组
  */
-export async function createPdfFromPages(originalPdfPath: string, selectedPageIds: number[], taskId: string): Promise<string> {
+export async function createPdfFromPages(originalPdfPath: string, selectedPageIds: number[], taskId: string, originalFileName?: string): Promise<string> {
     try {
-        const outputPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, 'exported.pdf');
+        // 生成导出文件名
+        let exportFileName = 'exported.pdf';
+        if (originalFileName) {
+            // 生成16位随机UUID
+            const shortUUID = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+            // 获取原文件名（不含扩展名）
+            const originalName = parse(originalFileName).name;
+            // 格式：原文件名_16位UUID.pdf
+            exportFileName = `${originalName}_${shortUUID}.pdf`;
+        }
+        
+        const outputPath = join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, exportFileName);
         
         console.log(`开始使用PDF-lib提取页面: ${selectedPageIds.join(', ')}`);
         

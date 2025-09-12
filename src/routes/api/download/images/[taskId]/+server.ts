@@ -3,6 +3,7 @@ import { error, json } from '@sveltejs/kit';
 import fs from 'fs';
 import path from 'path';
 import archiver from 'archiver';
+import crypto from 'crypto';
 
 export const POST: RequestHandler = async ({ params, request }) => {
 	const { taskId } = params;
@@ -14,10 +15,14 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
 	try {
 		const body = await request.json();
-		const { selectedPages } = body;
+		const { selectedPages, originalFileName } = body;
 
 		if (!selectedPages || !Array.isArray(selectedPages) || selectedPages.length === 0) {
 			throw error(400, 'No pages selected');
+		}
+
+		if (!originalFileName) {
+			throw error(400, 'Original filename is required');
 		}
 
 		// 构建图片目录路径
@@ -54,8 +59,14 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			throw error(404, 'No valid images found for selected pages');
 		}
 
-		// 设置响应头
-		const zipFilename = `pdf-images-${taskId}-${Date.now()}.zip`;
+		// 生成16位随机UUID
+		const shortUUID = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+		
+		// 获取原文件名（不含扩展名）
+		const originalName = path.parse(originalFileName).name;
+		
+		// 设置响应头 - 格式：原文件名_16位UUID.zip
+		const zipFilename = `${originalName}_${shortUUID}.zip`;
 		
 		// 创建可读流来传输ZIP数据
 		const stream = new ReadableStream({

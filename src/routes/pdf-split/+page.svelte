@@ -260,7 +260,8 @@
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					selectedPages: selectedPages
+					selectedPages: selectedPages,
+					originalFileName: taskData.fileName
 				})
 			});
 			
@@ -426,6 +427,7 @@
 				<input type="hidden" name="taskId" value={taskData?.taskId || ''} />
 				<input type="hidden" name="storedFileName" value={taskData?.storedFileName || ''} />
 				<input type="hidden" name="dateDir" value={taskData?.dateDir || ''} />
+				<input type="hidden" name="originalFileName" value={taskData?.fileName || ''} />
 				<input type="hidden" name="selectedPages" value={JSON.stringify(selectedPagesForExport)} />
 			</form>
 			
