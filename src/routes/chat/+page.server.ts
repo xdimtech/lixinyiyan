@@ -43,27 +43,27 @@ export const actions: Actions = {
 			});
 
 			// 添加历史对话
-			if (chatHistory && typeof chatHistory === 'string') {
-				try {
-					const history = JSON.parse(chatHistory);
-					if (Array.isArray(history)) {
-						for (const item of history) {
-							if (item.user && item.assistant) {
-								messages.push({
-									role: "user",
-									content: item.user
-								});
-								messages.push({
-									role: "assistant",
-									content: item.assistant
-								});
-							}
-						}
-					}
-				} catch (e) {
-					console.error('解析聊天历史失败:', e);
-				}
-			}
+			// if (chatHistory && typeof chatHistory === 'string') {
+			// 	try {
+			// 		const history = JSON.parse(chatHistory);
+			// 		if (Array.isArray(history)) {
+			// 			for (const item of history) {
+			// 				if (item.user && item.assistant) {
+			// 					messages.push({
+			// 						role: "user",
+			// 						content: item.user
+			// 					});
+			// 					messages.push({
+			// 						role: "assistant",
+			// 						content: item.assistant
+			// 					});
+			// 				}
+			// 			}
+			// 		}
+			// 	} catch (e) {
+			// 		console.error('解析聊天历史失败:', e);
+			// 	}
+			// }
 
 			// 添加当前用户消息
 			messages.push({
@@ -72,24 +72,38 @@ export const actions: Actions = {
 			});
 
 			// 调用API
-			const chatResponse = await client.chat.completions.create({
+			const chatResponse = await (client.chat.completions.create as any)({
 				model: TRANSLATE_MODEL,
 				temperature: 0.7,
 				top_p: 0.8,
 				max_tokens: 4096,
 				messages: messages,
-				// extra_body: {
-				// 	top_k: 20,
-				// 	enable_thinking: true, // 启用思考过程
-				// }
+				extra_body:{
+					"top_k": 20, 
+					"chat_template_kwargs": {"enable_thinking": true},
+				},
 			});
 
-			const response = chatResponse.choices[0].message.content;
+			const resp_message = chatResponse.choices[0].message as any;
+			console.log("full response:", resp_message);
 
+			const response = resp_message.content;
+			console.log("chat response:", response);
+
+			// 思考推理
+			const reasoningContent = resp_message?.reasoning_content;
+			console.log("reasoning content:", reasoningContent);
+
+			// 使用统计
+			const usage = chatResponse.usage;
+			console.log("usage:", usage);
+			
 			return {
 				success: true,
+				reasoningContent: reasoningContent,
 				response: response,
-				userMessage: message
+				userMessage: message,
+				usage: usage
 			};
 
 		} catch (error) {
