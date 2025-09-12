@@ -151,13 +151,13 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
 				/>
 			</div>
-			<div>
+			<div class="min-w-32">
 				<label for="pageSize" class="block text-sm font-medium text-gray-700 mb-2">每页显示</label>
 				<select
 					id="pageSize"
 					value={data.pagination.pageSize}
 					on:change={handlePageSizeChange}
-					class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
 				>
 					{#each pageSizeOptions as size}
 						<option value={size}>{size} 条</option>
