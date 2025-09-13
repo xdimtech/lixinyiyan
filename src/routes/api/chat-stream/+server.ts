@@ -124,6 +124,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// 创建一个ReadableStream来处理流式输出
 		const stream = new ReadableStream({
 			async start(controller) {
+				let isControllerClosed = false;
+				
+				// 安全的enqueue函数
+				const safeEnqueue = (data: Uint8Array) => {
+					if (!isControllerClosed) {
+						try {
+							controller.enqueue(data);
+						} catch (error) {
+							console.error('Controller enqueue error:', error);
+							isControllerClosed = true;
+						}
+					}
+				};
+				
+				// 安全的close函数
+				const safeClose = () => {
+					if (!isControllerClosed) {
+						try {
+							controller.close();
+							isControllerClosed = true;
+						} catch (error) {
+							console.error('Controller close error:', error);
+							isControllerClosed = true;
+						}
+					}
+				};
+				
 				try {
 					const chatResponse = await (client.chat.completions.create as any)({
 						model: useModel,
@@ -156,7 +183,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 									content: delta.reasoning_content,
 									fullReasoning: reasoningContent
 								}) + '\n';
-								controller.enqueue(new TextEncoder().encode(data));
+								safeEnqueue(new TextEncoder().encode(data));
 							}
 							
 							// 处理主要回复内容
@@ -168,7 +195,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 									content: delta.content,
 									fullContent: fullResponse
 								}) + '\n';
-								controller.enqueue(new TextEncoder().encode(data));
+								safeEnqueue(new TextEncoder().encode(data));
 							}
 						}
 						
@@ -186,17 +213,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 						usage: usage,
 						userMessage: message
 					}) + '\n';
-					controller.enqueue(new TextEncoder().encode(finalData));
+					safeEnqueue(new TextEncoder().encode(finalData));
 					
-					controller.close();
+					safeClose();
 				} catch (err) {
 					console.error('流式聊天错误:', err);
 					const errorData = JSON.stringify({
 						type: 'error',
 						message: err instanceof Error ? err.message : '未知错误'
 					}) + '\n';
-					controller.enqueue(new TextEncoder().encode(errorData));
-					controller.close();
+					safeEnqueue(new TextEncoder().encode(errorData));
+					safeClose();
 				}
 			}
 		});

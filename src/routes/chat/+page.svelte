@@ -47,6 +47,7 @@
 	let selectedImage: File | null = null;
 	let imagePreviewUrl: string = '';
 	let fileInput: HTMLInputElement;
+	let currentAbortController: AbortController | null = null;
 
 	// 预设的系统提示词选项
 	const presetPrompts = [
@@ -83,7 +84,13 @@
 
 	// 流式聊天函数
 	const handleStreamChat = async () => {
-		if (!currentMessage.trim()) return;
+		if (!currentMessage.trim() || isLoading) return;
+		
+		// 取消之前的请求（如果存在）
+		if (currentAbortController) {
+			currentAbortController.abort();
+		}
+		currentAbortController = new AbortController();
 		
 		// 立即显示用户消息
 		const userMessage = currentMessage.trim();
@@ -135,7 +142,8 @@
 					imageType: imageType || undefined,
 					systemPrompt: systemPrompt,
 					chatHistory: chatHistory.slice(0, -1) // 不包含当前正在处理的消息
-				})
+				}),
+				signal: currentAbortController.signal
 			});
 
 			if (!response.ok) {
@@ -221,6 +229,7 @@
 			});
 		} finally {
 			isLoading = false;
+			currentAbortController = null;
 		}
 	};
 
