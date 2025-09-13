@@ -241,15 +241,22 @@
 			.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-2 rounded"><code>$1</code></pre>');
 	};
 
+	// 复制状态管理
+	let copyStates: { [key: string]: boolean } = {};
+
 	// 复制到剪贴板功能
-	const copyToClipboard = async (text: string, type: string = '内容') => {
+	const copyToClipboard = async (text: string, messageId: string) => {
 		try {
 			await navigator.clipboard.writeText(text);
-			// 可以添加一个简单的提示，这里先用alert
-			alert(`${type}已复制到剪贴板！`);
+			// 设置复制成功状态
+			copyStates[messageId] = true;
+			// 2秒后重置状态
+			setTimeout(() => {
+				copyStates[messageId] = false;
+			}, 1500);
 		} catch (err) {
 			console.error('复制失败:', err);
-			alert('复制失败，请手动复制');
+			// 可以选择性地显示错误，但不使用alert
 		}
 	};
 
@@ -367,7 +374,9 @@
 					</div>
 				{:else}
 					<div class="space-y-6">
-						{#each chatHistory as chat}
+						{#each chatHistory as chat, index}
+							{@const userCopyId = `user-${index}`}
+							{@const assistantCopyId = `assistant-${index}`}
 							<!-- 用户消息 -->
 							<div class="flex justify-end">
 								<div class="max-w-xs lg:max-w-2xl bg-gradient-to-r from-blue-100 to-sky-100 text-gray-800 border border-blue-200 rounded-2xl rounded-br-md px-5 py-4 shadow-lg relative group">
@@ -384,14 +393,22 @@
 									<div class="text-sm">{chat.user}</div>
 									<!-- 复制按钮 -->
 									<button
-										on:click={() => copyToClipboard(chat.user, '用户消息')}
-										class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 bg-white/80 hover:bg-white rounded-md shadow-sm border border-blue-300 hover:border-blue-400"
-										title="复制消息"
+										on:click={() => copyToClipboard(chat.user, userCopyId)}
+										class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md shadow-sm border {copyStates[userCopyId] ? 'bg-green-100 border-green-400' : 'bg-white/80 border-blue-300 hover:bg-white hover:border-blue-400'}"
+										title={copyStates[userCopyId] ? "已复制!" : "复制消息"}
 										aria-label="复制用户消息"
 									>
-										<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-										</svg>
+										{#if copyStates[userCopyId]}
+											<!-- 复制成功图标 -->
+											<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+											</svg>
+										{:else}
+											<!-- 默认复制图标 -->
+											<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+											</svg>
+										{/if}
 									</button>
 								</div>
 							</div>
@@ -453,14 +470,22 @@
 											<!-- 复制模型输出按钮 (仅在完成后显示) -->
 											{#if !chat.isStreaming && !chat.isLoading}
 												<button
-													on:click={() => copyToClipboard(chat.assistant, 'AI回复')}
-													class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-md shadow-sm border border-gray-300 hover:border-gray-400"
-													title="复制AI回复"
+													on:click={() => copyToClipboard(chat.assistant, assistantCopyId)}
+													class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md shadow-sm border {copyStates[assistantCopyId] ? 'bg-green-100 border-green-400' : 'bg-gray-100 border-gray-300 hover:bg-gray-200 hover:border-gray-400'}"
+													title={copyStates[assistantCopyId] ? "已复制!" : "复制AI回复"}
 													aria-label="复制AI回复内容"
 												>
-													<svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-													</svg>
+													{#if copyStates[assistantCopyId]}
+														<!-- 复制成功图标 -->
+														<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+														</svg>
+													{:else}
+														<!-- 默认复制图标 -->
+														<svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+														</svg>
+													{/if}
 												</button>
 											{/if}
 										</div>
