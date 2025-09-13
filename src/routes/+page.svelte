@@ -174,7 +174,7 @@
 		
 		<!-- 底部装饰 -->
 		<div class="mt-6 pt-4 border-t border-gray-100">
-			<div class="flex justify-center items-center space-x-8 text-gray-400">
+			<div class="flex justify-center items-center flex-wrap gap-x-4 gap-y-2 text-gray-400">
 				<div class="flex items-center space-x-2">
 					<div class="w-2 h-2 bg-indigo-400 rounded-full"></div>
 					<span class="text-sm">专业可靠</span>
@@ -187,11 +187,19 @@
 					<div class="w-2 h-2 bg-blue-400 rounded-full"></div>
 					<span class="text-sm">智能便捷</span>
 				</div>
+				<div class="flex items-center space-x-2">
+					<div class="w-2 h-2 bg-green-400 rounded-full"></div>
+					<span class="text-sm">大模型应用</span>
+				</div>
+				<div class="flex items-center space-x-2">
+					<div class="w-2 h-2 bg-orange-400 rounded-full"></div>
+					<span class="text-sm">人工智能+新质生产力</span>
+				</div>
 			</div>
 			
 			<!-- 技术支持信息 -->
 			<div class="mt-3 text-center">
-				<p class="text-xs text-gray-500">
+				<p class="text-sm text-gray-500">
 					技术支持：<span class="font-medium text-gray-600">广州鲸浪科技有限公司</span>
 				</p>
 			</div>
