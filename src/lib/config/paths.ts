@@ -210,6 +210,8 @@ export function initializePathConfig(): PathConfig {
   console.log('  OCR输出目录:', config.ocrOutputDir);
   console.log('  翻译输出目录:', config.translateOutputDir);
   console.log('  图片输出目录:', config.imagesOutputDir);
+  console.log('  OCR压缩包输出目录:', config.ocrZipOutputDir);
+  console.log('  Translate压缩包输出目录:', config.translateZipOutputDir);
   console.log('  OCR endpoint:', config.ocrEndpoint);
   console.log('  OCR model:', config.ocrModel);
   console.log('  Translate endpoint:', config.translateEndpoint);

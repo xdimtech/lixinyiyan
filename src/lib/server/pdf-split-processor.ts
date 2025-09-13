@@ -38,7 +38,7 @@ export async function splitPdfToImages(pdfFilePath: string, taskId: string): Pro
             const page = doc.loadPage(pageNum);
             
             // 设置渲染参数，较高分辨率用于预览
-            const scale = 2.0;
+            const scale = 1.0;
             const matrix = mupdf.Matrix.scale(scale, scale);
             
             // 渲染页面为图片
@@ -133,8 +133,12 @@ export async function createPdfFromPages(originalPdfPath: string, selectedPageId
             console.log(`已复制第 ${pageId} 页`);
         }
         
-        // 保存新PDF
-        const pdfBytes = await newPdfDoc.save();
+        // 保存新PDF（启用压缩优化）
+        const pdfBytes = await newPdfDoc.save({
+            useObjectStreams: true,   // 启用对象流压缩（减小文件大小）
+            addDefaultPage: false,    // 不添加默认页面
+            objectsPerTick: 50,       // 控制处理速度
+        });
         await fs.writeFile(outputPath, pdfBytes);
         
         // 创建页面选择信息文件

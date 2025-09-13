@@ -141,6 +141,63 @@
 		</div>
 	</div>
 
+		<!-- 管理功能菜单 -->
+		<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 mb-8">
+			<h2 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">管理功能</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<a
+					href="/admin/users"
+					class="block p-6 bg-gradient-to-br from-green-50 to-emerald-100 border-2 border-green-200 rounded-xl hover:from-green-100 hover:to-emerald-200 hover:border-green-300 transition-all duration-200 hover:shadow-lg transform hover:scale-105"
+				>
+					<div class="flex items-center">
+						<div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-4">
+							<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-semibold text-gray-900">用户管理</h3>
+							<p class="text-sm text-gray-600">管理系统用户</p>
+						</div>
+					</div>
+				</a>
+
+				<a
+					href="/admin/prompts"
+					class="block p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200 rounded-xl hover:from-orange-100 hover:to-orange-200 hover:border-orange-300 transition-all duration-200 hover:shadow-lg transform hover:scale-105"
+				>
+					<div class="flex items-center">
+						<div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mr-4">
+							<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-semibold text-gray-900">提示词管理</h3>
+							<p class="text-sm text-gray-600">管理AI提示词</p>
+						</div>
+					</div>
+				</a>
+
+				<a
+					href="/admin/capacity"
+					class="block p-6 bg-gradient-to-br from-red-50 to-pink-100 border-2 border-red-200 rounded-xl hover:from-red-100 hover:to-pink-200 hover:border-red-300 transition-all duration-200 hover:shadow-lg transform hover:scale-105"
+				>
+					<div class="flex items-center">
+						<div class="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center mr-4">
+							<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-semibold text-gray-900">容量管理</h3>
+							<p class="text-sm text-gray-600">监控存储空间</p>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
 		<!-- 快捷链接 -->
 		<div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6">
 			<h2 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">快捷操作</h2>
