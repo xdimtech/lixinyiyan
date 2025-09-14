@@ -341,14 +341,20 @@
 				 in:slide={{ duration: 400, easing: quintOut, axis: 'x' }}>
 				<!-- 左栏：OCR结果 -->
 				<div class="w-full lg:w-1/2 flex flex-col border-r border-gray-200 lg:max-h-full bg-white">
-					<div class="bg-gradient-to-r from-gray-50 to-gray-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center">
-						<div class="w-6 h-6 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center mr-3">
-							<svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-							</svg>
+					<div class="bg-gradient-to-r from-gray-50 to-gray-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between min-h-[4.5rem]">
+						<div class="flex items-center">
+							<div class="w-6 h-6 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center mr-3">
+								<svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+								</svg>
+							</div>
+							<h3 class="text-lg font-semibold text-gray-900">OCR识别结果</h3>
 						</div>
-						<h3 class="text-lg font-semibold text-gray-900">OCR识别结果</h3>
+						<!-- 空的右侧区域，用于保持布局一致性 -->
+						<div class="flex items-center">
+							<!-- 这里可以添加OCR相关的操作按钮（如果需要的话） -->
+						</div>
 					</div>
 					<div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50">
 						<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 h-full"
@@ -372,7 +378,7 @@
 
 				<!-- 右栏：翻译结果 -->
 				<div class="w-full lg:w-1/2 flex flex-col bg-white lg:max-h-full">
-					<div class="bg-gradient-to-r from-gray-50 to-gray-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between">
+					<div class="bg-gradient-to-r from-gray-50 to-gray-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between min-h-[4.5rem]">
 						<div class="flex items-center">
 							<div class="w-6 h-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center mr-3">
 								<svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
