@@ -287,11 +287,11 @@
 	<div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
 		{#if filteredTasks.length === 0}
 			<div class="text-center py-16">
-				<div class="text-gray-400 text-lg mb-2">暂无任务记录</div>
+				<div class="text-white-400 text-lg mb-2">暂无任务记录</div>
 				<p class="text-gray-500 mb-6">还没有任何任务，创建您的第一个任务吧</p>
 				<a
 					href="/upload"
-					class="inline-block bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md font-medium"
+					class="inline-block bg-gradient-to-r from-indigo-600 to-blue-600 !text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md font-medium"
 				>
 					创建第一个任务
 				</a>
