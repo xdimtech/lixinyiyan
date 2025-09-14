@@ -272,6 +272,7 @@
 					<li>• 支持多种文件格式：PDF、Word文档、纯文本、图片等</li>
 					<li>• 文件大小限制：最大50MB</li>
 					<li>• 解析过程可能需要几分钟，请耐心等待</li>
+					<li>• <strong class="text-orange-600">注意：解析任务一旦开始就无法取消</strong></li>
 					<li>• 系统会自动识别文档内容并转换为Markdown格式</li>
 					<li>• 支持表格、公式、图像等复杂内容的解析</li>
 				</ul>
@@ -301,7 +302,7 @@
 						</svg>
 					</div>
 					<h3 class="text-xl font-medium text-gray-900 mb-2">正在解析文件...</h3>
-					<p class="text-gray-600 mb-4">这可能需要几分钟时间，请耐心等待</p>
+					<p class="text-gray-600 mb-4">解析过程可能需要几分钟时间，请耐心等待。解析任务一旦开始就无法取消。</p>
 					{#if taskData}
 						<div class="bg-gray-50 rounded-lg p-4 max-w-md mx-auto">
 							<div class="flex items-center space-x-3">
@@ -315,12 +316,9 @@
 					{/if}
 					
 					<div class="mt-6">
-						<button
-							on:click={resetFlow}
-							class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-						>
-							取消解析
-						</button>
+						<p class="text-sm text-gray-500 max-w-md mx-auto">
+							解析任务已开始，无法中途取消。请耐心等待解析完成，或关闭页面稍后查看结果。
+						</p>
 					</div>
 				</div>
 			{/if}

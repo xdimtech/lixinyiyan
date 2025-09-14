@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import path, { join } from 'path';
 
 const UPLOAD_DIR = './uploads/files';
 const FILE_PARSE_API_URL = 'http://127.0.0.1:8000/file_parse';
@@ -17,10 +17,10 @@ export const actions: Actions = {
 				return fail(400, { message: '请选择一个文件' });
 			}
 
-			// 检查文件大小（50MB限制）
-			const maxSize = 50 * 1024 * 1024;
+			// 检查文件大小（20MB限制）
+			const maxSize = 20 * 1024 * 1024;
 			if (file.size > maxSize) {
-				return fail(400, { message: '文件大小不能超过50MB' });
+				return fail(400, { message: '文件大小不能超过20MB' });
 			}
 
 			// 检查文件类型（支持PDF, DOC, DOCX, TXT等）
@@ -93,9 +93,14 @@ export const actions: Actions = {
 			}
 
 			// 创建FormData用于API调用
+			const dateDir = new Date().toISOString().split('T')[0];
 			const fs = await import('fs');
 			const fileBuffer = fs.readFileSync(filePath);
 			const blob = new Blob([fileBuffer]);
+
+			// 使用UPLOAD_DIR的绝对路径，而不是相对路径
+			const absoluteUploadDir = path.resolve(UPLOAD_DIR);
+			const absolutePath = join(absoluteUploadDir, dateDir, fileName);
 
 			const parseFormData = new FormData();
 			parseFormData.append('files', blob, fileName);
@@ -103,11 +108,11 @@ export const actions: Actions = {
 			parseFormData.append('return_model_output', 'false');
 			parseFormData.append('return_md', 'true');
 			parseFormData.append('return_images', 'false');
-			parseFormData.append('end_page_id', '99999');
+			parseFormData.append('end_page_id', '500');
 			parseFormData.append('parse_method', 'auto');
 			parseFormData.append('start_page_id', '0');
 			parseFormData.append('lang_list', 'ch');
-			parseFormData.append('output_dir', './output');
+			parseFormData.append('output_dir', absolutePath);
 			parseFormData.append('server_url', 'string');
 			parseFormData.append('return_content_list', 'false');
 			parseFormData.append('backend', 'pipeline');
