@@ -90,8 +90,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}> = [];
 
 		// 查找图片文件目录
-		const taskImagesDir = join(imagesOutputDir, `task_${taskId}`, 'images');
-		
+		const datestring = new Date().toISOString().split('T')[0];
+		const taskImagesDir = join(imagesOutputDir, datestring, `task_${taskId}`, 'images');
+		console.log('datestring', datestring);
+		console.log('taskImagesDir', taskImagesDir);
+		console.log('task.fileName', task.fileName);
+		console.log('taskImagesDir', taskImagesDir);
+
 		let imageBaseDir = '';
 		let pdfDirName = '';
 		try {

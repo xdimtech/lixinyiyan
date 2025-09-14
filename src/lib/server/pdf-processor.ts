@@ -45,9 +45,7 @@ const TRANSLATE_SYSTEM_PROMPT = promptProvider.getTranslatePrompt() || `# 角色
  */
 export async function pdfToImages(pdfFilePath: string, outputDir: string): Promise<string[]> {
     try {
-        const pdfName = basename(pdfFilePath, extname(pdfFilePath));
-        const imagesDir = join(outputDir, "images", pdfName);
-        await fs.mkdir(imagesDir, { recursive: true });
+        await fs.mkdir(outputDir, { recursive: true });
         
         console.log(`开始将PDF ${pdfFilePath} 转换为图片...`);
         
@@ -74,7 +72,7 @@ export async function pdfToImages(pdfFilePath: string, outputDir: string): Promi
             const pixmap = page.toPixmap(matrix, mupdf.ColorSpace.DeviceRGB, false);
             
             // 保存为PNG文件
-            const imagePath = join(imagesDir, `page_${(pageNum + 1).toString().padStart(3, '0')}.png`);
+            const imagePath = join(outputDir, `page_${(pageNum + 1).toString().padStart(3, '0')}.png`);
             const pngData = pixmap.asPNG();
             await fs.writeFile(imagePath, pngData);
             
