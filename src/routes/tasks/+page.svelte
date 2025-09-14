@@ -314,7 +314,7 @@
 								处理类型
 							</th>
 							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-								页数
+								页数/进度
 							</th>
 							<th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
 								状态
@@ -345,7 +345,27 @@
 									</span>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									<span class="font-mono">{task.pageNum || '-'}</span>
+									{#if task.pageNum && task.pageNum > 0}
+										<div class="flex flex-col space-y-1">
+											<span class="font-mono text-xs">{task.curPage || 0}/{task.pageNum}</span>
+											{#if task.status === 1}
+												<!-- 处理中显示进度条 -->
+												<div class="w-16 bg-gray-200 rounded-full h-1.5">
+													<div 
+														class="bg-gradient-to-r from-indigo-500 to-blue-500 h-1.5 rounded-full transition-all duration-300" 
+														style="width: {Math.round(((task.curPage || 0) / task.pageNum) * 100)}%"
+													></div>
+												</div>
+												<span class="text-xs text-gray-500">{Math.round(((task.curPage || 0) / task.pageNum) * 100)}%</span>
+											{:else}
+												<span class="text-xs text-gray-500">
+													{task.status === 2 ? '已完成' : task.status === 0 ? '等待中' : '失败'}
+												</span>
+											{/if}
+										</div>
+									{:else}
+										<span class="font-mono">-</span>
+									{/if}
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<span class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full {statusMap[task.status].class}">

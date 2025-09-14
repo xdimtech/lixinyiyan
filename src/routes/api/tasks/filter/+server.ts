@@ -65,6 +65,7 @@ export const POST: RequestHandler = async (event) => {
 				fileName: table.metaParseTask.fileName,
 				filePath: table.metaParseTask.filePath,
 				pageNum: table.metaParseTask.pageNum,
+				curPage: table.metaParseTask.curPage,
 				status: table.metaParseTask.status,
 				createdAt: sql<string>`DATE_FORMAT(${table.metaParseTask.createdAt}, '%Y-%m-%d %H:%i:%s')`,
 				updatedAt: sql<string>`DATE_FORMAT(${table.metaParseTask.updatedAt}, '%Y-%m-%d %H:%i:%s')`,

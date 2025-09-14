@@ -53,31 +53,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			throw error(403, '权限不足：您只能审核自己创建的任务');
 		}
 
-		// 获取OCR结果
-		const ocrResults = await db
+		// 获取处理结果（OCR和翻译统一在metaProcessOutput表中）
+		const processResults = await db
 			.select()
-			.from(table.metaOcrOutput)
-			.where(eq(table.metaOcrOutput.taskId, taskId));
+			.from(table.metaProcessOutput)
+			.where(eq(table.metaProcessOutput.taskId, taskId));
 
-		// 获取翻译结果（如果有）
-		const translateResults = await db
-			.select()
-			.from(table.metaTranslateOutput)
-			.where(eq(table.metaTranslateOutput.taskId, taskId));
-
-		// 构建OCR结果的页码映射，便于快速查找
-		const ocrResultsMap = new Map();
-		ocrResults.forEach(ocr => {
-			if (ocr.pageNo) {
-				ocrResultsMap.set(ocr.pageNo, ocr);
-			}
-		});
-
-		// 构建翻译结果的页码映射，便于快速查找
-		const translateResultsMap = new Map();
-		translateResults.forEach(trans => {
-			if (trans.pageNo) {
-				translateResultsMap.set(trans.pageNo, trans);
+		// 构建处理结果的页码映射，便于快速查找
+		const processResultsMap = new Map();
+		processResults.forEach(result => {
+			if (result.pageNo) {
+				processResultsMap.set(result.pageNo, result);
 			}
 		});
 
@@ -111,29 +97,26 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		for (let i = 1; i <= (task.pageNum || 0); i++) {
 			const pageNumStr = i.toString().padStart(3, '0');
 			
-			// 通过页码直接查找OCR结果
-			const ocrResult = ocrResultsMap.get(i);
-			
-			// 通过页码直接查找翻译结果
-			const translateResult = translateResultsMap.get(i);
+			// 通过页码直接查找处理结果
+			const processResult = processResultsMap.get(i);
 
 			// 读取OCR文本
 			let ocrText = '';
-			if (ocrResult?.outputTxtPath) {
+			if (processResult?.ocrTxtPath) {
 				try {
-					ocrText = await fs.readFile(ocrResult.outputTxtPath, 'utf-8');
+					ocrText = await fs.readFile(processResult.ocrTxtPath, 'utf-8');
 				} catch (e) {
-					console.warn('OCR file not found:', ocrResult.outputTxtPath);
+					console.warn('OCR file not found:', processResult.ocrTxtPath);
 				}
 			}
 
 			// 读取翻译文本
 			let translateText = '';
-			if (translateResult?.outputTxtPath) {
+			if (processResult?.translateTxtPath) {
 				try {
-					translateText = await fs.readFile(translateResult.outputTxtPath, 'utf-8');
+					translateText = await fs.readFile(processResult.translateTxtPath, 'utf-8');
 				} catch (e) {
-					console.warn('Translation file not found:', translateResult.outputTxtPath);
+					console.warn('Translation file not found:', processResult.translateTxtPath);
 				}
 			}
 
@@ -145,10 +128,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			console.log(`Page ${i} mapping:`, {
 				pageNum: i,
 				imageExists,
-				hasOcr: !!ocrResult,
-				hasTranslation: !!translateResult,
-				ocrPath: ocrResult?.outputTxtPath,
-				translationPath: translateResult?.outputTxtPath
+				hasOcr: !!processResult && processResult.ocrStatus === 2,
+				hasTranslation: !!processResult && processResult.translateStatus === 2,
+				ocrPath: processResult?.ocrTxtPath,
+				translationPath: processResult?.translateTxtPath,
+				ocrStatus: processResult?.ocrStatus,
+				translateStatus: processResult?.translateStatus
 			});
 			
 			pages.push({

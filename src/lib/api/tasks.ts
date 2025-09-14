@@ -6,6 +6,7 @@ export interface Task {
 	fileName: string;
 	filePath: string;
 	pageNum: number | null;
+	curPage: number | null; // 当前处理到的页数
 	status: number;
 	createdAt: string; // 现在统一返回字符串格式
 	updatedAt: string; // 现在统一返回字符串格式

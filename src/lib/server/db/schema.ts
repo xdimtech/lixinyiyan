@@ -31,6 +31,7 @@ export const metaParseTask = mysqlTable('meta_parse_task', {
 	fileName: varchar('file_name', { length: 255 }).notNull(),
 	filePath: varchar('file_path', { length: 500 }).notNull(),
 	pageNum: int('page_num').notNull(),
+	curPage: int('cur_page').notNull().default(0), // 当前处理到哪一页，用于进度展示
 	status: int('status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
 	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`),
@@ -67,6 +68,23 @@ export const metaTranslateOutput = mysqlTable('meta_translate_output', {
 	isDeleted: tinyint('is_deleted').notNull().default(0)
 });
 
+// 统一处理输出表 - 合并OCR和翻译状态
+export const metaProcessOutput = mysqlTable('meta_process_output', {
+	id: serial('id').primaryKey(),
+	taskId: bigint('task_id', { mode: 'number' })
+		.notNull()
+		.references(() => metaParseTask.id),
+	pageNo: int('page_no').notNull(),
+	inputFilePath: varchar('input_file_path', { length: 500 }).notNull(), // 图片文件路径
+	ocrTxtPath: varchar('ocr_txt_path', { length: 500 }), // OCR输出文件路径
+	translateTxtPath: varchar('translate_txt_path', { length: 500 }), // 翻译输出文件路径
+	ocrStatus: int('ocr_status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
+	translateStatus: int('translate_status').notNull().default(0), // 0-pending; 1-processing; 2-finished; 3-failed
+	createdAt: datetime('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: datetime('updated_at').notNull().default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`),
+	isDeleted: tinyint('is_deleted').notNull().default(0)
+});
+
 // 提示词管理表
 export const metaPrompt = mysqlTable('meta_prompt', {
 	id: serial('id').primaryKey(),
@@ -84,4 +102,5 @@ export type User = typeof user.$inferSelect;
 export type MetaParseTask = typeof metaParseTask.$inferSelect;
 export type MetaOcrOutput = typeof metaOcrOutput.$inferSelect;
 export type MetaTranslateOutput = typeof metaTranslateOutput.$inferSelect;
+export type MetaProcessOutput = typeof metaProcessOutput.$inferSelect;
 export type MetaPrompt = typeof metaPrompt.$inferSelect;

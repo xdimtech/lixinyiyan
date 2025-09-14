@@ -23,7 +23,7 @@ export const load: PageServerLoad = async (event) => {
 			.from(table.user)
 			.orderBy(table.user.username);
 
-		// 默认获取所有任务
+		// 默认获取所有任务，包含进度信息
 		const tasks = await db
 			.select({
 				id: table.metaParseTask.id,
@@ -32,6 +32,7 @@ export const load: PageServerLoad = async (event) => {
 				fileName: table.metaParseTask.fileName,
 				filePath: table.metaParseTask.filePath,
 				pageNum: table.metaParseTask.pageNum,
+				curPage: table.metaParseTask.curPage,
 				status: table.metaParseTask.status,
 				createdAt: sql<string>`DATE_FORMAT(${table.metaParseTask.createdAt}, '%Y-%m-%d %H:%i:%s')`,
 				updatedAt: sql<string>`DATE_FORMAT(${table.metaParseTask.updatedAt}, '%Y-%m-%d %H:%i:%s')`,
@@ -86,7 +87,10 @@ export const actions: Actions = {
 				return fail(403, { message: '无权限删除此任务' });
 			}
 
-			// 删除相关的OCR和翻译记录
+			// 删除相关的处理记录（新表）
+			await db.delete(table.metaProcessOutput).where(eq(table.metaProcessOutput.taskId, parseInt(taskId)));
+			
+			// 删除相关的OCR和翻译记录（旧表，向后兼容）
 			await db.delete(table.metaOcrOutput).where(eq(table.metaOcrOutput.taskId, parseInt(taskId)));
 			await db.delete(table.metaTranslateOutput).where(eq(table.metaTranslateOutput.taskId, parseInt(taskId)));
 			

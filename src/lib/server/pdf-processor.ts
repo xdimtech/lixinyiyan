@@ -97,49 +97,77 @@ export async function pdfToImages(pdfFilePath: string, outputDir: string): Promi
 }
 
 /**
- * 调用OCR API进行图片文字识别
+ * 延迟函数
  */
-export async function callOcrApi(imagePath: string, systemPrompt?: string): Promise<string> {
-    try {
-        const client = new OpenAI({
-            apiKey: "EMPTY",
-            baseURL: OCR_API_URL,
-            timeout: 60000, // 30秒超时
-        });
+function delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-        // 读取图片文件并转换为base64
-        const imageBuffer = await fs.readFile(imagePath);
-        const base64Image = imageBuffer.toString('base64');
-        const base64Qwen = `data:image;base64,${base64Image}`;
+/**
+ * 带重试机制的OCR API调用
+ */
+export async function callOcrApi(imagePath: string, systemPrompt?: string, maxRetries: number = 3): Promise<string> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`OCR API调用 - 尝试 ${attempt}/${maxRetries}: ${imagePath}`);
+            
+            const client = new OpenAI({
+                apiKey: "EMPTY",
+                baseURL: OCR_API_URL,
+                timeout: 90000, // 增加超时时间到90秒
+                maxRetries: 0, // 禁用OpenAI客户端的内置重试，我们自己控制
+            });
 
-        const prompt = systemPrompt || SYSTEM_PROMPT;
+            // 读取图片文件并转换为base64
+            const imageBuffer = await fs.readFile(imagePath);
+            const base64Image = imageBuffer.toString('base64');
+            const base64Qwen = `data:image;base64,${base64Image}`;
 
-        const chatResponse = await client.chat.completions.create({
-            model: DEFAULT_MODEL,
-            temperature: 0.01,
-            max_tokens: 30000,
-            messages: [
-                { role: "system", content: prompt },
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "image_url",
-                            image_url: {
-                                url: base64Qwen
+            const prompt = systemPrompt || SYSTEM_PROMPT;
+
+            const chatResponse = await client.chat.completions.create({
+                model: DEFAULT_MODEL,
+                temperature: 0.01,
+                max_tokens: 30000,
+                messages: [
+                    { role: "system", content: prompt },
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: base64Qwen
+                                },
                             },
-                        },
-                        { type: "text", text: "Please identify the text in the picture" },
-                    ],
-                },
-            ],
-        });
+                            { type: "text", text: "Please identify the text in the picture" },
+                        ],
+                    },
+                ],
+            });
 
-        return chatResponse.choices[0].message.content || '';
-    } catch (error) {
-        console.error('OCR API调用失败:', error);
-        throw error;
+            const result = chatResponse.choices[0].message.content || '';
+            console.log(`OCR API调用成功 - 尝试 ${attempt}/${maxRetries}: 返回长度 ${result.length}, 返回内容: ${result}`);
+            return result;
+            
+        } catch (error) {
+            lastError = error as Error;
+            console.error(`OCR API调用失败 - 尝试 ${attempt}/${maxRetries}:`, error);
+            
+            // 如果不是最后一次尝试，等待后重试
+            if (attempt < maxRetries) {
+                const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // 指数退避，最大10秒
+                console.log(`等待 ${waitTime}ms 后重试...`);
+                await delay(waitTime);
+            }
+        }
     }
+    
+    // 所有重试都失败了
+    console.error(`OCR API调用最终失败，已重试 ${maxRetries} 次`);
+    throw lastError || new Error('OCR API调用失败');
 }
 
 /**
@@ -153,91 +181,106 @@ export type TranslateProgressCallback = (progress: {
 }) => void;
 
 /**
- * 调用翻译API（流式输出版本）
+ * 带重试机制的翻译API调用（流式输出版本）
  */
-export async function callTranslateApi(text: string, systemPrompt?: string, onProgress?: TranslateProgressCallback): Promise<string> {
-    try {
-        const client = new OpenAI({
-            apiKey: "EMPTY",
-            baseURL: TRANSLATE_API_URL,
-            timeout: 60000, // 60秒超时
-        });
+export async function callTranslateApi(text: string, systemPrompt?: string, onProgress?: TranslateProgressCallback, maxRetries: number = 3): Promise<string> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`翻译API调用 - 尝试 ${attempt}/${maxRetries}: 文本长度 ${text.length}`);
+            
+            const client = new OpenAI({
+                apiKey: "EMPTY",
+                baseURL: TRANSLATE_API_URL,
+                timeout: 90000, // 增加超时时间到90秒
+                maxRetries: 0, // 禁用OpenAI客户端的内置重试
+            });
 
-        const prompt = systemPrompt || TRANSLATE_SYSTEM_PROMPT;
+            const prompt = systemPrompt || TRANSLATE_SYSTEM_PROMPT;
 
-        // 使用流式输出
-        const chatResponse = await (client.chat.completions.create as any)({
-            model: TRANSLATE_MODEL,
-            temperature: 0.7,
-            top_p: 0.8,
-            max_tokens: 4096,
-            messages: [
-                { role: "system", content: prompt },
-                { role: "user", content: text }
-            ],
-            extra_body: {
-                "top_k": 20, 
-                "chat_template_kwargs": {"enable_thinking": true},
-            },
-            stream: true,
-        });
+            // 使用流式输出
+            const chatResponse = await (client.chat.completions.create as any)({
+                model: TRANSLATE_MODEL,
+                temperature: 0.7,
+                top_p: 0.8,
+                max_tokens: 4096,
+                messages: [
+                    { role: "system", content: prompt },
+                    { role: "user", content: text }
+                ],
+                extra_body: {
+                    "top_k": 20, 
+                    "chat_template_kwargs": {"enable_thinking": true},
+                },
+                stream: true,
+            });
 
-        let fullResponse = '';
-        let reasoningContent = '';
+            let fullResponse = '';
+            let reasoningContent = '';
 
-        // 处理流式响应并等待完成
-        for await (const chunk of chatResponse) {
-            if (chunk.choices && chunk.choices[0]) {
-                const delta = chunk.choices[0].delta;
-                
-                // 处理推理内容
-                if (delta?.reasoning_content) {
-                    reasoningContent += delta.reasoning_content;
-                    // 输出推理过程日志
-                    // console.log('翻译推理:', delta.reasoning_content);
+            // 处理流式响应并等待完成
+            for await (const chunk of chatResponse) {
+                if (chunk.choices && chunk.choices[0]) {
+                    const delta = chunk.choices[0].delta;
                     
-                    // 调用进度回调
-                    if (onProgress) {
-                        onProgress({
-                            type: 'reasoning',
-                            content: delta.reasoning_content,
-                            fullReasoning: reasoningContent,
-                            fullContent: fullResponse
-                        });
+                    // 处理推理内容
+                    if (delta?.reasoning_content) {
+                        reasoningContent += delta.reasoning_content;
+                        
+                        // 调用进度回调
+                        if (onProgress) {
+                            onProgress({
+                                type: 'reasoning',
+                                content: delta.reasoning_content,
+                                fullReasoning: reasoningContent,
+                                fullContent: fullResponse
+                            });
+                        }
                     }
-                }
-                
-                // 处理主要回复内容
-                if (delta?.content) {
-                    fullResponse += delta.content;
-                    // 输出流式内容日志
-                    // console.log('翻译内容:', delta.content);
                     
-                    // 调用进度回调
-                    if (onProgress) {
-                        onProgress({
-                            type: 'content',
-                            content: delta.content,
-                            fullReasoning: reasoningContent,
-                            fullContent: fullResponse
-                        });
+                    // 处理主要回复内容
+                    if (delta?.content) {
+                        fullResponse += delta.content;
+                        
+                        // 调用进度回调
+                        if (onProgress) {
+                            onProgress({
+                                type: 'content',
+                                content: delta.content,
+                                fullReasoning: reasoningContent,
+                                fullContent: fullResponse
+                            });
+                        }
                     }
                 }
             }
-        }
 
-        console.log(`翻译完成 - 内容长度: ${fullResponse.length}, 推理长度: ${reasoningContent.length}`);
-        
-        // 如果启用了推理内容，在日志中显示推理总结
-        if (reasoningContent) {
-            console.log('推理内容预览:', reasoningContent.slice(0, 200) + (reasoningContent.length > 200 ? '...' : ''));
+            console.log(`翻译API调用成功 - 尝试 ${attempt}/${maxRetries}: 内容长度 ${fullResponse.length}, 推理长度 ${reasoningContent.length}`);
+            
+            // 如果启用了推理内容，在日志中显示推理总结
+            if (reasoningContent) {
+                console.log('推理内容预览:', reasoningContent.slice(0, 200) + (reasoningContent.length > 200 ? '...' : ''));
+            }
+            
+            return fullResponse || '';
+            
+        } catch (error) {
+            lastError = error as Error;
+            console.error(`翻译API调用失败 - 尝试 ${attempt}/${maxRetries}:`, error);
+            
+            // 如果不是最后一次尝试，等待后重试
+            if (attempt < maxRetries) {
+                const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 15000); // 指数退避，最大15秒
+                console.log(`等待 ${waitTime}ms 后重试...`);
+                await delay(waitTime);
+            }
         }
-        
-        return fullResponse || '';
-    } catch (error) {
-        console.error('翻译API调用失败:', error);
-        throw error;
     }
+    
+    // 所有重试都失败了
+    console.error(`翻译API调用最终失败，已重试 ${maxRetries} 次`);
+    throw lastError || new Error('翻译API调用失败');
 }
 
 /**

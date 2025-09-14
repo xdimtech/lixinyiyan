@@ -1,0 +1,1 @@
+ALTER TABLE `meta_process_output` MODIFY COLUMN `task_id` int NOT NULL;
