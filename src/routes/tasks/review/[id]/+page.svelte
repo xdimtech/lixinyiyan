@@ -2,7 +2,7 @@
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { fade, slide } from 'svelte/transition';
+	import { fade, slide, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 
 	export let data: PageData;
@@ -23,16 +23,49 @@
 	let editedTranslationText = '';
 	let saving = false;
 	
+	// 消息提示状态
+	let showMessage = false;
+	let messageText = '';
+	let messageType: 'success' | 'error' = 'success';
+	let messageTimeout: NodeJS.Timeout | null = null;
+	
 	// 图片放大状态
 	let showImageModal = false;
 	let modalImageUrl = '';
 	let modalPageNum = 0;
 
+	// 显示消息提示
+	const showNotification = (text: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+		// 清除之前的定时器
+		if (messageTimeout) {
+			clearTimeout(messageTimeout);
+		}
+		
+		messageText = text;
+		messageType = type;
+		showMessage = true;
+		
+		// 自动隐藏
+		messageTimeout = setTimeout(() => {
+			showMessage = false;
+		}, duration);
+	};
+	
+	// 手动关闭消息
+	const closeMessage = () => {
+		if (messageTimeout) {
+			clearTimeout(messageTimeout);
+		}
+		showMessage = false;
+	};
+	
 	// 选择页面
 	const selectPage = (index: number) => {
 		selectedPageIndex = index;
 		editingTranslation = false;
 		editedTranslationText = selectedPage?.translateText || '';
+		// 切换页面时隐藏消息
+		closeMessage();
 	};
 
 	// 开始编辑翻译
@@ -58,9 +91,9 @@
 					selectedPage.translateText = editedTranslationText;
 				}
 				editingTranslation = false;
-				alert(result.data.message || '保存成功');
+				showNotification(result.data.message || '保存成功', 'success');
 			} else {
-				alert(result.data?.message || '保存失败');
+				showNotification(result.data?.message || '保存失败', 'error');
 			}
 		};
 	};
@@ -88,6 +121,14 @@
 		modalImageUrl = '';
 		modalPageNum = 0;
 	};
+	
+	// 组件销毁时清理定时器
+	import { onDestroy } from 'svelte';
+	onDestroy(() => {
+		if (messageTimeout) {
+			clearTimeout(messageTimeout);
+		}
+	});
 </script>
 
 <svelte:head>
@@ -169,6 +210,7 @@
 			</div>
 		</div>
 	{/if}
+
 
 	<!-- 主要内容区域 -->
 	<div class="flex-1 flex flex-col lg:flex-row overflow-hidden bg-gray-50">
@@ -558,6 +600,44 @@
 						点击空白区域或按 ESC 键关闭
 					</span>
 				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Toast 消息提示 -->
+{#if showMessage}
+	<div 
+		class="fixed top-4 right-4 z-50 max-w-sm w-full sm:w-auto sm:min-w-80"
+		in:fly={{ x: 300, duration: 400, easing: quintOut }}
+		out:fly={{ x: 300, duration: 200 }}
+	>
+		<div class="mx-4 sm:mx-0 p-4 rounded-xl shadow-lg border backdrop-blur-sm transition-all duration-300 {messageType === 'success' ? 'bg-white/95 text-green-800 border-green-200 shadow-green-100/50' : 'bg-white/95 text-red-800 border-red-200 shadow-red-100/50'}">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center">
+					<div class="w-6 h-6 rounded-full mr-3 flex items-center justify-center {messageType === 'success' ? 'bg-green-100' : 'bg-red-100'}">
+						{#if messageType === 'success'}
+							<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+							</svg>
+						{:else}
+							<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						{/if}
+					</div>
+					<span class="font-medium text-sm">{messageText}</span>
+				</div>
+				<button
+					type="button"
+					on:click={closeMessage}
+					class="ml-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 hover:bg-gray-100 rounded-md"
+					aria-label="关闭消息"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
 			</div>
 		</div>
 	</div>
