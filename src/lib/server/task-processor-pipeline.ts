@@ -205,7 +205,7 @@ async function processTranslateTask(ocrResult: OcrResult): Promise<TranslateResu
         // 调用翻译API
         const apiCallStart = Date.now();
         const translateText = await callTranslateApi(ocrText, undefined, (progress) => {
-            console.log(`第 ${pageTask.pageNo} 页翻译进度 [${progress.type}]:`, progress.content.slice(0, 50) + (progress.content.length > 50 ? '...' : ''));
+            // console.log(`第 ${pageTask.pageNo} 页翻译进度 [${progress.type}]:`, progress.content.slice(0, 50) + (progress.content.length > 50 ? '...' : ''));
         });
         const apiCallDuration = Date.now() - apiCallStart;
         

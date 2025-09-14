@@ -125,16 +125,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			const imageExists = await fs.access(imagePath).then(() => true).catch(() => false);
 			
 			// 添加调试日志以验证顺序对应
-			console.log(`Page ${i} mapping:`, {
-				pageNum: i,
-				imageExists,
-				hasOcr: !!processResult && processResult.ocrStatus === 2,
-				hasTranslation: !!processResult && processResult.translateStatus === 2,
-				ocrPath: processResult?.ocrTxtPath,
-				translationPath: processResult?.translateTxtPath,
-				ocrStatus: processResult?.ocrStatus,
-				translateStatus: processResult?.translateStatus
-			});
+			// console.log(`Page ${i} mapping:`, {
+			// 	pageNum: i,
+			// 	imageExists,
+			// 	hasOcr: !!processResult && processResult.ocrStatus === 2,
+			// 	hasTranslation: !!processResult && processResult.translateStatus === 2,
+			// 	ocrPath: processResult?.ocrTxtPath,
+			// 	translationPath: processResult?.translateTxtPath,
+			// 	ocrStatus: processResult?.ocrStatus,
+			// 	translateStatus: processResult?.translateStatus
+			// });
 			
 			pages.push({
 				pageNum: i,
@@ -219,48 +219,33 @@ export const actions: Actions = {
 		}
 
 		try {
-			// 通过 taskId + pageNo 精确查找翻译记录
-			const pageNumStr = pageNum.toString().padStart(3, '0');
-			const [translateResult] = await db
+			// 通过 taskId + pageNo 精确查找处理记录（新表结构）
+			const [processResult] = await db
 				.select()
-				.from(table.metaTranslateOutput)
+				.from(table.metaProcessOutput)
 				.where(
 					and(
-						eq(table.metaTranslateOutput.taskId, taskId),
-						eq(table.metaTranslateOutput.pageNo, pageNum)
+						eq(table.metaProcessOutput.taskId, taskId),
+						eq(table.metaProcessOutput.pageNo, pageNum)
 					)
 				)
 				.limit(1);
 
-			if (translateResult?.outputTxtPath) {
+			if (processResult?.translateTxtPath) {
+				// 检查翻译状态，只有完成状态的翻译才允许编辑
+				if (processResult.translateStatus !== 2) {
+					return fail(400, { message: `第${pageNum}页翻译尚未完成，无法编辑` });
+				}
+				
 				// 保存翻译内容到文件
-				await fs.writeFile(translateResult.outputTxtPath, translationText, 'utf-8');
+				await fs.writeFile(processResult.translateTxtPath, translationText, 'utf-8');
 				
 				return {
 					success: true,
 					message: `第${pageNum}页翻译内容已保存`
 				};
 			} else {
-				// 如果没有翻译记录，创建一个
-				const outputDir = join(translateOutputDir, `task_${taskId}`);
-				await fs.mkdir(outputDir, { recursive: true });
-				
-				const outputPath = join(outputDir, `page_${pageNumStr}.txt`);
-				await fs.writeFile(outputPath, translationText, 'utf-8');
-
-				// 在数据库中创建记录
-				await db.insert(table.metaTranslateOutput).values({
-					taskId: taskId,
-					pageNo: pageNum,
-					inputFilePath: join(ocrOutputDir, `task_${taskId}`, `page_${pageNumStr}.txt`),
-					outputTxtPath: outputPath,
-					status: 2 // finished
-				});
-
-				return {
-					success: true,
-					message: `第${pageNum}页翻译内容已保存`
-				};
+				return fail(404, { message: `第${pageNum}页翻译记录不存在` });
 			}
 		} catch (error) {
 			console.error('Save translation error:', error);
