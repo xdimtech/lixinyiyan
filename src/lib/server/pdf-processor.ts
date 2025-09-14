@@ -110,6 +110,8 @@ export async function callOcrApi(imagePath: string, systemPrompt?: string, maxRe
     let lastError: Error | null = null;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const starttime = Date.now();
+
         try {
             console.log(`OCR API调用 - 尝试 ${attempt}/${maxRetries}: ${imagePath}`);
             
@@ -147,14 +149,15 @@ export async function callOcrApi(imagePath: string, systemPrompt?: string, maxRe
                     },
                 ],
             });
-
+            const apiCallDuration = Date.now() - starttime;
             const result = chatResponse.choices[0].message.content || '';
-            console.log(`OCR API调用成功 - 尝试 ${attempt}/${maxRetries}: 返回长度 ${result.length}, 返回内容: ${result}`);
+            console.log(`OCR API调用成功 - 尝试 ${attempt}/${maxRetries}: 耗时 ${apiCallDuration}ms, 返回长度 ${result.length}, 返回内容: ${result}`);
             return result;
             
         } catch (error) {
             lastError = error as Error;
-            console.error(`OCR API调用失败 - 尝试 ${attempt}/${maxRetries}:`, error);
+            const apiCallDuration = Date.now() - starttime;
+            console.error(`OCR API调用失败 - 尝试 ${attempt}/${maxRetries}: 耗时 ${apiCallDuration}ms`, error);
             
             // 如果不是最后一次尝试，等待后重试
             if (attempt < maxRetries) {
@@ -187,6 +190,7 @@ export async function callTranslateApi(text: string, systemPrompt?: string, onPr
     let lastError: Error | null = null;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const starttime = Date.now();
         try {
             console.log(`翻译API调用 - 尝试 ${attempt}/${maxRetries}: 文本长度 ${text.length}`);
             
@@ -256,7 +260,8 @@ export async function callTranslateApi(text: string, systemPrompt?: string, onPr
                 }
             }
 
-            console.log(`翻译API调用成功 - 尝试 ${attempt}/${maxRetries}: 内容长度 ${fullResponse.length}, 推理长度 ${reasoningContent.length}`);
+            const apiCallDuration = Date.now() - starttime;
+            console.log(`翻译API调用成功 - 尝试 ${attempt}/${maxRetries}: 耗时 ${apiCallDuration}ms, 内容长度 ${fullResponse.length}, 推理长度 ${reasoningContent.length}`);
             
             // 如果启用了推理内容，在日志中显示推理总结
             if (reasoningContent) {
@@ -267,7 +272,8 @@ export async function callTranslateApi(text: string, systemPrompt?: string, onPr
             
         } catch (error) {
             lastError = error as Error;
-            console.error(`翻译API调用失败 - 尝试 ${attempt}/${maxRetries}:`, error);
+            const apiCallDuration = Date.now() - starttime;
+            console.error(`翻译API调用失败 - 尝试 ${attempt}/${maxRetries}: 耗时 ${apiCallDuration}ms`, error);
             
             // 如果不是最后一次尝试，等待后重试
             if (attempt < maxRetries) {

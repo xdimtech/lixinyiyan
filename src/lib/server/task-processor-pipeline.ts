@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile } from './pdf-processor';
 import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
@@ -511,7 +511,9 @@ export async function processPendingTasksPipeline(): Promise<void> {
         const pendingTasks = await db
             .select()
             .from(table.metaParseTask)
-            .where(eq(table.metaParseTask.status, 0)); // pending
+            .where(eq(table.metaParseTask.status, 0))
+            .orderBy(asc(table.metaParseTask.id)) // 先进先出
+            .limit(50); // pending
 
         console.log(`找到 ${pendingTasks.length} 个待处理任务`);
 

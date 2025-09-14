@@ -68,14 +68,26 @@ export async function invalidateSession(sessionId: string) {
 }
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date) {
+	const isProduction = process.env.NODE_ENV === 'production';
+	const isSecure = event.url.protocol === 'https:' || isProduction;
+	
 	event.cookies.set(sessionCookieName, token, {
 		expires: expiresAt,
-		path: '/'
+		path: '/',
+		httpOnly: true,
+		secure: isSecure,
+		sameSite: isSecure ? 'strict' : 'lax'
 	});
 }
 
 export function deleteSessionTokenCookie(event: RequestEvent) {
+	const isProduction = process.env.NODE_ENV === 'production';
+	const isSecure = event.url.protocol === 'https:' || isProduction;
+	
 	event.cookies.delete(sessionCookieName, {
-		path: '/'
+		path: '/',
+		httpOnly: true,
+		secure: isSecure,
+		sameSite: isSecure ? 'strict' : 'lax'
 	});
 }
