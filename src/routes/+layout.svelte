@@ -19,7 +19,8 @@ const navItems = [
 	{ href: '/upload', label: '创建任务', icon: '📁' },
 	{ href: '/tasks', label: '任务列表', icon: '📋' },
 	{ href: '/chat', label: '智能对话', icon: '💬' },
-	{ href: '/pdf-split', label: 'PDF拆分', icon: '🔧' }
+	{ href: '/pdf-split', label: 'PDF拆分', icon: '🔧' },
+	{ href: '/file-parse', label: '文件解析', icon: '📄' }
 ];
 
 // 管理员菜单项
