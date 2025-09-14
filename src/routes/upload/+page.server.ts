@@ -4,8 +4,9 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
+import { getPathConfig } from '$lib/config/paths';
 
-const UPLOAD_DIR = '/tmp/uploads'; // 可以根据需要调整
+const UPLOAD_DIR = getPathConfig().pdfUploadDir;
 
 export const actions: Actions = {
 	upload: async (event) => {
@@ -40,8 +41,12 @@ export const actions: Actions = {
 
 			// 生成唯一的文件名
 			const timestamp = Date.now();
-			const fileName = `${timestamp}_${file.name}`;
-			const filePath = join(UPLOAD_DIR, fileName);
+			// 文件名后缀， 16位随机UUID
+			const fileExt = file.name.split('.').pop();
+			const nameWithoutExt = file.name.split('.').slice(0, -1).join('_');
+			const fileName = `${nameWithoutExt}_${timestamp}.${fileExt}`;
+			const datestring = new Date().toISOString().split('T')[0];
+			const filePath = join(UPLOAD_DIR, datestring, fileName);
 
 			// 保存文件
 			const arrayBuffer = await file.arrayBuffer();

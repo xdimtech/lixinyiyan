@@ -52,12 +52,16 @@ export async function processTask(taskId: number): Promise<void> {
 
         console.log(`开始处理任务 ${taskId}: ${task.fileName}`);
 
-        // 1. PDF转图片
-        const taskImagesDir = join(imagesOutputDir, `task_${taskId}`);
+        // 格式化任务创建日期为 YYYY-MM-DD 格式
+        const taskDate = new Date(task.createdAt);
+        const dateString = taskDate.toISOString().split('T')[0]; // 格式: 2025-09-12
+
+        // 1. PDF转图片 - 包含日期路径
+        const taskImagesDir = join(imagesOutputDir, dateString, `task_${taskId}`);
         const imagePaths = await pdfToImages(task.filePath, taskImagesDir);
 
-        const outputOCRDir = join(ocrOutputDir, `task_${taskId}`);
-        const outputTranslateDir = join(translateOutputDir, `task_${taskId}`);
+        const outputOCRDir = join(ocrOutputDir, dateString, `task_${taskId}`);
+        const outputTranslateDir = join(translateOutputDir, dateString, `task_${taskId}`);
         
         // 更新页数
         await db
@@ -141,8 +145,8 @@ export async function processTask(taskId: number): Promise<void> {
             }
         }
 
-        // 3. 创建压缩包
-        const ocrZipOutputBaseDir = join(ocrZipOutputDir, `task_${taskId}`);
+        // 3. 创建压缩包 - 包含日期路径
+        const ocrZipOutputBaseDir = join(ocrZipOutputDir, dateString, `task_${taskId}`);
         const ocrZipSavePath = join(ocrZipOutputBaseDir, `${basename(task.fileName, extname(task.fileName))}_ocr_result.zip`);
         // 创建一个临时目录来组织所有结果文件
         const ocrTempPackageDir = join(ocrZipOutputBaseDir, 'package');
@@ -169,9 +173,9 @@ export async function processTask(taskId: number): Promise<void> {
             console.warn('复制OCR文件失败:', e);
         }
         
-        // 复制翻译结果到打包目录（如果存在）
+        // 复制翻译结果到打包目录（如果存在）- 包含日期路径
         if (task.parseType === 'translate') {
-            const translateZipOutputBaseDir = join(translateZipOutputDir, `task_${taskId}`);
+            const translateZipOutputBaseDir = join(translateZipOutputDir, dateString, `task_${taskId}`);
             const translateZipSavePath = join(translateZipOutputBaseDir, `${basename(task.fileName, extname(task.fileName))}_translate_result.zip`);
            
             const translateTempPackageDir = join(translateZipOutputBaseDir, 'package');
