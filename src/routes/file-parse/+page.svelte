@@ -32,6 +32,9 @@
 
 	// 文件预览URL
 	let filePreviewUrl: string | null = null;
+	
+	// 原始文件预览URL (用于显示上传的文件)
+	let originalFilePreviewUrl: string | null = null;
 
 	const handleFileChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
@@ -53,6 +56,12 @@
 			if (result.type === 'success' && result.data?.success) {
 				taskData = result.data;
 				currentStep = 2;
+				
+				// 设置原始文件预览URL
+				if (taskData?.dateDir && taskData?.storedFileName) {
+					originalFilePreviewUrl = `/api/file-preview/${taskData.dateDir}/${taskData.storedFileName}`;
+				}
+				
 				// 自动开始解析
 				setTimeout(() => {
 					const parseForm = document.getElementById('parseForm') as HTMLFormElement;
@@ -97,6 +106,9 @@
 			URL.revokeObjectURL(filePreviewUrl);
 			filePreviewUrl = null;
 		}
+		
+		// 清理原始文件预览URL
+		originalFilePreviewUrl = null;
 		
 		// 清空文件输入框
 		const fileInput = document.getElementById('file') as HTMLInputElement;
@@ -163,45 +175,49 @@
 	<title>文件解析 - 立心译言</title>
 </svelte:head>
 
-<div class="h-full flex flex-col max-w-8xl mx-auto">
+<!-- 使用 calc 来计算可用高度，减去导航栏高度 -->
+<div class="flex flex-col max-w-full" style="height: calc(100vh - 4rem);">
 	<!-- 标题栏 -->
-	<div class="bg-white rounded-lg shadow-md p-6 mb-4">
-		<h1 class="text-2xl font-bold text-gray-900 mb-4">文件解析</h1>
-		
-		<!-- 步骤指示器 -->
-		<div class="flex items-center justify-center">
-			<div class="flex items-center">
-				<div class="flex items-center justify-center w-8 h-8 rounded-full {currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}">
-					1
+	<div class="bg-white shadow-md flex-shrink-0">
+		<div class="max-w-screen-2xl mx-auto p-4">
+			<!-- 步骤指示器 -->
+			<div class="flex items-center justify-center">
+				<div class="flex items-center">
+					<div class="flex items-center justify-center w-8 h-8 rounded-full {currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}">
+						1
+					</div>
+					<span class="ml-2 text-sm font-medium {currentStep >= 1 ? 'text-indigo-600' : 'text-gray-500'}">
+						上传文件
+					</span>
 				</div>
-				<span class="ml-2 text-sm font-medium {currentStep >= 1 ? 'text-indigo-600' : 'text-gray-500'}">
-					上传文件
-				</span>
-			</div>
-			<div class="flex-1 h-1 mx-8 {currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-300'}" style="max-width: 120px;"></div>
-			<div class="flex items-center">
-				<div class="flex items-center justify-center w-8 h-8 rounded-full {currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}">
-					2
+				<div class="flex-1 h-1 mx-8 {currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-300'}" style="max-width: 120px;"></div>
+				<div class="flex items-center">
+					<div class="flex items-center justify-center w-8 h-8 rounded-full {currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}">
+						2
+					</div>
+					<span class="ml-2 text-sm font-medium {currentStep >= 2 ? 'text-indigo-600' : 'text-gray-500'}">
+						解析处理
+					</span>
 				</div>
-				<span class="ml-2 text-sm font-medium {currentStep >= 2 ? 'text-indigo-600' : 'text-gray-500'}">
-					解析处理
-				</span>
-			</div>
-			<div class="flex-1 h-1 mx-8 {currentStep >= 3 ? 'bg-indigo-600' : 'bg-gray-300'}" style="max-width: 120px;"></div>
-			<div class="flex items-center">
-				<div class="flex items-center justify-center w-8 h-8 rounded-full {currentStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}">
-					3
+				<div class="flex-1 h-1 mx-8 {currentStep >= 3 ? 'bg-indigo-600' : 'bg-gray-300'}" style="max-width: 120px;"></div>
+				<div class="flex items-center">
+					<div class="flex items-center justify-center w-8 h-8 rounded-full {currentStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'}">
+						3
+					</div>
+					<span class="ml-2 text-sm font-medium {currentStep >= 3 ? 'text-indigo-600' : 'text-gray-500'}">
+						查看结果
+					</span>
 				</div>
-				<span class="ml-2 text-sm font-medium {currentStep >= 3 ? 'text-indigo-600' : 'text-gray-500'}">
-					查看结果
-				</span>
 			</div>
 		</div>
 	</div>
 
-	{#if currentStep === 1}
-		<!-- 步骤1: 文件上传 -->
-		<div class="bg-white rounded-lg shadow-md p-6">
+	<!-- 主内容区域 -->
+	<div class="flex-1 overflow-hidden">
+		<div class="w-full h-full p-4">
+		{#if currentStep === 1}
+			<!-- 步骤1: 文件上传 -->
+			<div class="bg-white rounded-lg shadow-md p-6 h-full overflow-auto">
 			<form 
 				method="POST" 
 				action="?/upload" 
@@ -277,22 +293,22 @@
 					<li>• 支持表格、公式、图像等复杂内容的解析</li>
 				</ul>
 			</div>
-		</div>
-	{:else if currentStep === 2}
-		<!-- 步骤2: 解析中 -->
-		<!-- 隐藏的解析表单 -->
-		<form 
-			id="parseForm"
-			method="POST" 
-			action="?/parse" 
-			style="display: none;"
-			use:enhance={handleParse}
-		>
-			<input type="hidden" name="filePath" value={taskData?.filePath || ''} />
-			<input type="hidden" name="fileName" value={taskData?.fileName || ''} />
-		</form>
-		
-		<div class="bg-white rounded-lg shadow-md p-6 flex-1 flex items-center justify-center">
+			</div>
+		{:else if currentStep === 2}
+			<!-- 步骤2: 解析中 -->
+			<!-- 隐藏的解析表单 -->
+			<form 
+				id="parseForm"
+				method="POST" 
+				action="?/parse" 
+				style="display: none;"
+				use:enhance={handleParse}
+			>
+				<input type="hidden" name="filePath" value={taskData?.filePath || ''} />
+				<input type="hidden" name="fileName" value={taskData?.fileName || ''} />
+			</form>
+			
+			<div class="bg-white rounded-lg shadow-md p-6 h-full flex items-center justify-center">
 			{#if parsing}
 				<div class="text-center">
 					<div class="mb-6">
@@ -322,12 +338,12 @@
 					</div>
 				</div>
 			{/if}
-		</div>
-	{:else if currentStep === 3}
-		<!-- 步骤3: 展示结果 - 左右分栏布局 -->
-		<div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
+			</div>
+		{:else if currentStep === 3}
+			<!-- 步骤3: 展示结果 - 左右分栏布局 -->
+			<div class="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
 			<!-- 左栏：原文件预览 -->
-			<div class="bg-white rounded-lg shadow-md p-6 flex flex-col">
+			<div class="bg-white rounded-lg shadow-md p-6 flex flex-col min-h-0">
 				<div class="flex items-center justify-between mb-4">
 					<h3 class="text-lg font-medium text-gray-900">原文件</h3>
 					<button
@@ -353,36 +369,73 @@
 					</div>
 				{/if}
 				
-				<div class="flex-1 border border-gray-200 rounded-lg p-4 overflow-auto bg-gray-50">
-					{#if filePreviewUrl && taskData?.fileType?.startsWith('image/')}
+				<div class="flex-1 border border-gray-200 rounded-lg overflow-auto bg-gray-50">
+					{#if originalFilePreviewUrl && taskData?.fileType?.startsWith('image/')}
 						<!-- 图片预览 -->
-						<div class="text-center">
+						<div class="h-full flex items-center justify-center p-4">
+							<img 
+								src={originalFilePreviewUrl} 
+								alt="文件预览" 
+								class="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+							/>
+						</div>
+					{:else if originalFilePreviewUrl && taskData?.fileType?.includes('pdf')}
+						<!-- PDF文件嵌入预览 -->
+						<div class="w-full h-full">
+							<embed 
+								src={originalFilePreviewUrl} 
+								type="application/pdf" 
+								class="w-full h-full border-0"
+								title="PDF预览"
+							/>
+						</div>
+					{:else if originalFilePreviewUrl && taskData?.fileType?.includes('text')}
+						<!-- 文本文件预览 -->
+						<div class="h-full p-4 overflow-auto">
+							<iframe 
+								src={originalFilePreviewUrl}
+								class="w-full h-full border-0 bg-white p-4 text-sm"
+								title="文本文件预览"
+							></iframe>
+						</div>
+					{:else if filePreviewUrl && taskData?.fileType?.startsWith('image/')}
+						<!-- 本地图片预览（上传时的临时预览） -->
+						<div class="h-full flex items-center justify-center p-4">
 							<img 
 								src={filePreviewUrl} 
 								alt="文件预览" 
-								class="max-w-full h-auto rounded-lg shadow-sm"
+								class="max-w-full max-h-full object-contain rounded-lg shadow-sm"
 							/>
 						</div>
-					{:else if taskData?.fileType?.includes('pdf')}
-						<!-- PDF文件提示 -->
-						<div class="text-center py-12">
-							<span class="text-6xl mb-4 block">📕</span>
-							<p class="text-gray-600">PDF文件预览</p>
-							<p class="text-sm text-gray-500 mt-2">完整内容请查看右侧解析结果</p>
+					{:else if taskData?.fileType}
+						<!-- 其他文件类型或无预览URL时的提示 -->
+						<div class="h-full flex items-center justify-center text-center p-12">
+							<div>
+								<span class="text-6xl mb-4 block">{getFileIcon(taskData?.fileType)}</span>
+								<p class="text-gray-600 text-lg">{taskData.fileName}</p>
+								<p class="text-sm text-gray-500 mt-2">
+									{#if taskData.fileType.includes('doc')}
+										Word文档预览暂不支持，请查看右侧解析结果
+									{:else}
+										此文件类型暂不支持预览，请查看右侧解析结果
+									{/if}
+								</p>
+							</div>
 						</div>
 					{:else}
-						<!-- 其他文件类型提示 -->
-						<div class="text-center py-12">
-							<span class="text-6xl mb-4 block">{getFileIcon(taskData?.fileType)}</span>
-							<p class="text-gray-600">文件内容预览</p>
-							<p class="text-sm text-gray-500 mt-2">完整内容请查看右侧解析结果</p>
+						<!-- 默认状态 -->
+						<div class="h-full flex items-center justify-center text-center p-12">
+							<div>
+								<span class="text-6xl mb-4 block">📄</span>
+								<p class="text-gray-600">等待文件上传</p>
+							</div>
 						</div>
 					{/if}
 				</div>
 			</div>
 			
 			<!-- 右栏：解析结果 -->
-			<div class="bg-white rounded-lg shadow-md p-6 flex flex-col">
+			<div class="bg-white rounded-lg shadow-md p-6 flex flex-col min-h-0">
 				<div class="flex items-center justify-between mb-4">
 					<h3 class="text-lg font-medium text-gray-900">解析结果</h3>
 					<div class="flex space-x-2">
@@ -434,8 +487,10 @@
 					{/if}
 				</div>
 			</div>
+			</div>
+		{/if}
 		</div>
-	{/if}
+	</div>
 
 	<!-- 错误消息显示 -->
 	{#if form?.message}
