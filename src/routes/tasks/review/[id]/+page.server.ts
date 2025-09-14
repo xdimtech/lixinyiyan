@@ -91,22 +91,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 		// 查找图片文件目录
 		const datestring = new Date().toISOString().split('T')[0];
-		const taskImagesDir = join(imagesOutputDir, datestring, `task_${taskId}`, 'images');
+		const taskImagesDir = join(imagesOutputDir, datestring, `task_${taskId}`);
 		console.log('datestring', datestring);
 		console.log('taskImagesDir', taskImagesDir);
 		console.log('task.fileName', task.fileName);
-		console.log('taskImagesDir', taskImagesDir);
 
-		let imageBaseDir = '';
+		let imageBaseDir = taskImagesDir;
 		let pdfDirName = '';
 		try {
-			// 尝试找到图片目录
-			const dirs = await fs.readdir(taskImagesDir);
-			const pdfDir = dirs.find(dir => !dir.includes('.') && !dir.startsWith('.'));
-			if (pdfDir) {
-				imageBaseDir = join(taskImagesDir, pdfDir);
-				pdfDirName = pdfDir;
-			}
+			// 检查图片目录是否存在
+			await fs.access(taskImagesDir);
+			// 图片直接存储在task目录下，不需要查找子目录
+			imageBaseDir = taskImagesDir;
 		} catch (e) {
 			console.warn('Images directory not found:', taskImagesDir);
 		}
@@ -157,7 +153,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			
 			pages.push({
 				pageNum: i,
-				imageUrl: imageExists ? `/api/tasks/review/image/${taskId}/${pageNumStr}?dir=${encodeURIComponent(pdfDirName)}` : '',
+				imageUrl: imageExists ? `/api/tasks/review/image/${taskId}/${pageNumStr}` : '',
 				ocrText,
 				translateText
 			});

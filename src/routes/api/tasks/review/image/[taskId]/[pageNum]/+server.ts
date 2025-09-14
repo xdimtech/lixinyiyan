@@ -4,35 +4,20 @@ import { join } from 'path';
 import { promises as fs } from 'fs';
 import { imagesOutputDir } from '$lib/config/paths';
 
-export const GET: RequestHandler = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params }) => {
 	const { taskId, pageNum } = params;
-	const dirName = url.searchParams.get('dir');
 	
 	if (!taskId || !pageNum) {
 		throw error(400, '缺少必要参数');
 	}
 
 	try {
-		// 构建图片路径
-		const taskImagesDir = join(imagesOutputDir, `task_${taskId}`, 'images');
+		// 构建图片路径 - 使用日期格式的路径
+		const datestring = new Date().toISOString().split('T')[0];
+		const taskImagesDir = join(imagesOutputDir, datestring, `task_${taskId}`);
 		
-		// 查找图片文件
-		let imagePath = '';
-		if (dirName) {
-			// 使用传入的目录名
-			imagePath = join(taskImagesDir, dirName, `page_${pageNum}.png`);
-		} else {
-			// 自动查找目录
-			try {
-				const dirs = await fs.readdir(taskImagesDir);
-				const pdfDir = dirs.find(dir => !dir.includes('.') && !dir.startsWith('.'));
-				if (pdfDir) {
-					imagePath = join(taskImagesDir, pdfDir, `page_${pageNum}.png`);
-				}
-			} catch (e) {
-				throw error(404, '图片文件不存在');
-			}
-		}
+		// 图片直接存储在task目录下
+		const imagePath = join(taskImagesDir, `page_${pageNum}.png`);
 
 		// 检查文件是否存在
 		try {
