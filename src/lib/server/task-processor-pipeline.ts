@@ -1,10 +1,10 @@
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile, createZipArchive } from './pdf-processor';
+import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile } from './pdf-processor';
 import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
-import { initializePathConfig, ocrOutputDir, translateOutputDir, imagesOutputDir, ocrZipOutputDir, translateZipOutputDir } from '$lib/config/paths';
+import { initializePathConfig, ocrOutputDir, translateOutputDir, imagesOutputDir } from '$lib/config/paths';
 
 // 初始化路径配置
 const pathConfig = initializePathConfig();
@@ -457,13 +457,6 @@ export async function processTaskPipeline(taskId: number): Promise<void> {
             const pipelineDuration = Date.now() - pipelineStart;
             console.log(`流水线处理完成，总耗时: ${pipelineDuration}ms，OCR: ${ocrSuccessCount}成功/${ocrFailCount}失败，翻译: ${translateSuccessCount}成功/${translateFailCount}失败`);
         }
-
-        // 5. 创建压缩包 - 包含日期路径
-        const archiveStart = Date.now();
-        await createResultArchives(task, taskId, dateString, outputOCRDir, outputTranslateDir);
-        const archiveDuration = Date.now() - archiveStart;
-        console.log(`压缩包创建完成，耗时: ${archiveDuration}ms`);
-        
         // 6. 更新任务状态为完成
         await db
             .update(table.metaParseTask)
@@ -471,7 +464,7 @@ export async function processTaskPipeline(taskId: number): Promise<void> {
             .where(eq(table.metaParseTask.id, taskId));
 
         const totalTaskDuration = Date.now() - taskStartTime;
-        console.log(`流水线任务 ${taskId} 处理完成，总耗时: ${totalTaskDuration}ms (PDF转换: ${pdfConvertDuration}ms, 处理阶段: ${totalTaskDuration - pdfConvertDuration - archiveDuration}ms, 压缩: ${archiveDuration}ms)`);
+        console.log(`流水线任务 ${taskId} 处理完成，总耗时: ${totalTaskDuration}ms (PDF转换: ${pdfConvertDuration}ms, 处理阶段: ${totalTaskDuration - pdfConvertDuration}ms)`);
 
     } catch (error) {
         const totalTaskDuration = Date.now() - taskStartTime;
@@ -484,70 +477,6 @@ export async function processTaskPipeline(taskId: number): Promise<void> {
             .where(eq(table.metaParseTask.id, taskId));
         
         throw error;
-    }
-}
-
-/**
- * 创建结果压缩包
- */
-async function createResultArchives(
-    task: table.MetaParseTask, 
-    taskId: number, 
-    dateString: string, 
-    outputOCRDir: string, 
-    outputTranslateDir: string
-): Promise<void> {
-    // OCR结果压缩包
-    const ocrZipOutputBaseDir = join(ocrZipOutputDir, dateString, `task_${taskId}`);
-    const ocrZipSavePath = join(ocrZipOutputBaseDir, `${basename(task.fileName, extname(task.fileName))}_ocr_result.zip`);
-    const ocrTempPackageDir = join(ocrZipOutputBaseDir, 'package');
-    await fs.mkdir(ocrTempPackageDir, { recursive: true });
-
-    try {
-        const ocrFiles = await fs.readdir(outputOCRDir);
-        for (const file of ocrFiles) {
-            const srcPath = join(outputOCRDir, file);
-            const destPath = join(ocrTempPackageDir, file);
-            const stat = await fs.stat(srcPath);
-            if (stat.isFile()) {
-                await fs.copyFile(srcPath, destPath);
-            } else if (stat.isDirectory()) {
-                await copyDirectory(srcPath, destPath);
-            }
-        }
-        console.log(`创建OCR压缩包: ${ocrTempPackageDir} -> ${ocrZipSavePath}`);
-        await createZipArchive(ocrTempPackageDir, ocrZipSavePath);
-        await fs.rm(ocrTempPackageDir, { recursive: true, force: true });
-    } catch (e) {
-        console.warn('复制OCR文件失败:', e);
-    }
-    
-    // 翻译结果压缩包（如果存在）
-    if (task.parseType === 'translate') {
-        const translateZipOutputBaseDir = join(translateZipOutputDir, dateString, `task_${taskId}`);
-        const translateZipSavePath = join(translateZipOutputBaseDir, `${basename(task.fileName, extname(task.fileName))}_translate_result.zip`);
-       
-        const translateTempPackageDir = join(translateZipOutputBaseDir, 'package');
-        await fs.mkdir(translateTempPackageDir, { recursive: true });
-        
-        try {
-            const translateFiles = await fs.readdir(outputTranslateDir);
-            for (const file of translateFiles) {
-                const srcPath = join(outputTranslateDir, file);
-                const destPath = join(translateTempPackageDir, file);
-                const stat = await fs.stat(srcPath);
-                if (stat.isFile()) {
-                    await fs.copyFile(srcPath, destPath);
-                } else if (stat.isDirectory()) {
-                    await copyDirectory(srcPath, destPath);
-                }
-            }
-            console.log(`创建翻译压缩包: ${translateTempPackageDir} -> ${translateZipSavePath}`);
-            await createZipArchive(translateTempPackageDir, translateZipSavePath);
-            await fs.rm(translateTempPackageDir, { recursive: true, force: true });
-        } catch (e) {
-            console.warn('复制翻译文件失败:', e);
-        }
     }
 }
 

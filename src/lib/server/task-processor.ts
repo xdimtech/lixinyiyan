@@ -1,10 +1,10 @@
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile, createZipArchive } from './pdf-processor';
+import { pdfToImages, callOcrApi, callTranslateApi, saveTextToFile } from './pdf-processor';
 import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
-import { initializePathConfig, ocrOutputDir, translateOutputDir, imagesOutputDir, ocrZipOutputDir, translateZipOutputDir } from '$lib/config/paths';
+import { initializePathConfig, ocrOutputDir, translateOutputDir, imagesOutputDir } from '$lib/config/paths';
 
 // 初始化路径配置
 const pathConfig = initializePathConfig();
@@ -145,62 +145,7 @@ export async function processTask(taskId: number): Promise<void> {
             }
         }
 
-        // 3. 创建压缩包 - 包含日期路径
-        const ocrZipOutputBaseDir = join(ocrZipOutputDir, dateString, `task_${taskId}`);
-        const ocrZipSavePath = join(ocrZipOutputBaseDir, `${basename(task.fileName, extname(task.fileName))}_ocr_result.zip`);
-        // 创建一个临时目录来组织所有结果文件
-        const ocrTempPackageDir = join(ocrZipOutputBaseDir, 'package');
-        await fs.mkdir(ocrTempPackageDir, { recursive: true });
-    
-        // 复制OCR结果到打包目录
-        try {
-            const ocrFiles = await fs.readdir(outputOCRDir);
-            for (const file of ocrFiles) {
-                const srcPath = join(outputOCRDir, file);
-                const destPath = join(ocrTempPackageDir, file);
-                const stat = await fs.stat(srcPath);
-                if (stat.isFile()) {
-                    await fs.copyFile(srcPath, destPath);
-                } else if (stat.isDirectory()) {
-                    // 如果是目录，递归复制
-                    await copyDirectory(srcPath, destPath);
-                }
-            }
-            console.log(`创建压缩包: ${ocrTempPackageDir} -> ${ocrZipSavePath}`);
-            await createZipArchive(ocrTempPackageDir, ocrZipSavePath);
-            await fs.rm(ocrTempPackageDir, { recursive: true, force: true });
-        } catch (e) {
-            console.warn('复制OCR文件失败:', e);
-        }
-        
-        // 复制翻译结果到打包目录（如果存在）- 包含日期路径
-        if (task.parseType === 'translate') {
-            const translateZipOutputBaseDir = join(translateZipOutputDir, dateString, `task_${taskId}`);
-            const translateZipSavePath = join(translateZipOutputBaseDir, `${basename(task.fileName, extname(task.fileName))}_translate_result.zip`);
-           
-            const translateTempPackageDir = join(translateZipOutputBaseDir, 'package');
-            await fs.mkdir(translateTempPackageDir, { recursive: true });
-            
-            try {
-                const translateFiles = await fs.readdir(outputTranslateDir);
-                for (const file of translateFiles) {
-                    const srcPath = join(outputTranslateDir, file);
-                    const destPath = join(translateTempPackageDir, file);
-                    const stat = await fs.stat(srcPath);
-                    if (stat.isFile()) {
-                        await fs.copyFile(srcPath, destPath);
-                    } else if (stat.isDirectory()) {
-                        // 如果是目录，递归复制
-                        await copyDirectory(srcPath, destPath);
-                    }
-                }
-                console.log(`创建压缩包: ${translateTempPackageDir} -> ${translateZipSavePath}`);
-                await createZipArchive(translateTempPackageDir, translateZipSavePath);
-                await fs.rm(translateTempPackageDir, { recursive: true, force: true });
-            } catch (e) {
-                console.warn('复制翻译文件失败:', e);
-            }
-        }
+        // 3. 处理完成（压缩包在下载时动态创建）
         
         // 4. 更新任务状态为完成
         await db
