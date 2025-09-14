@@ -184,7 +184,8 @@ async function processOcrTask(pageTask: PageTask): Promise<OcrResult> {
 async function processTranslateTask(ocrResult: OcrResult): Promise<TranslateResult> {
     const { pageTask, ocrText, success } = ocrResult;
     
-    if (!success || !pageTask.translateOutputPath) {
+    if (!success || !pageTask.translateOutputPath || !ocrText) {
+        console.log(`OCR失败或不需要翻译 ${ocrText} ${success} ${pageTask.translateOutputPath}`);
         return {
             pageTask,
             translateText: '',
@@ -195,6 +196,7 @@ async function processTranslateTask(ocrResult: OcrResult): Promise<TranslateResu
     
     const startTime = Date.now();
     try {
+
         console.log(`开始翻译处理第 ${pageTask.pageNo} 页，OCR文本长度: ${ocrText.length}`);
         
         // 更新翻译状态为处理中
@@ -395,6 +397,23 @@ export async function processTaskPipeline(taskId: number): Promise<void> {
                         console.error(`OCR失败: 页面${pageTask.pageNo}`, error);
                         ocrFailCount++;
                         ocrCompleted++;
+                        
+                        // 创建失败的OCR结果，仍需要加入翻译队列（翻译会跳过失败的OCR）
+                        const failedOcrResult: OcrResult = {
+                            pageTask,
+                            ocrText: '',
+                            success: false,
+                            error: `OCR处理失败: ${error}`
+                        };
+                        translateQueue.push(failedOcrResult);
+                        
+                        // 更新任务进度
+                        await updateTaskProgress(pageTask.taskId, pageTask.pageNo);
+                        
+                        console.log(`OCR完成: 页面${pageTask.pageNo} (${ocrCompleted}/${pageTasks.length}，成功: ${ocrSuccessCount}，失败: ${ocrFailCount})`);
+                        
+                        // 触发翻译处理
+                        processNextTranslate();
                     } finally {
                         ocrRunning--;
                         // 继续处理下一个OCR任务
@@ -433,6 +452,10 @@ export async function processTaskPipeline(taskId: number): Promise<void> {
                         console.error(`翻译失败: 页面${ocrResult.pageTask.pageNo}`, error);
                         translateFailCount++;
                         translateCompleted++;
+                        
+                        // 更新进度（即使翻译失败也算该页完成）
+                        await updateTaskProgress(taskId, ocrResult.pageTask.pageNo);
+                        console.log(`翻译完成: 页面${ocrResult.pageTask.pageNo} (${translateCompleted}/${pageTasks.length}，成功: ${translateSuccessCount}，失败: ${translateFailCount})`);
                     } finally {
                         translateRunning--;
                         // 继续处理下一个翻译任务
