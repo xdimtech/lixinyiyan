@@ -46,20 +46,25 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         let zipPath: string;
         let outputDir: string;
         
+        // 构建日期字符串 (YYYY-MM-DD 格式，与任务处理器保持一致)
+        const taskDate = new Date(task.createdAt);
+        const dateString = taskDate.toISOString().split('T')[0];
+        
         // 使用与任务处理器相同的文件名构建逻辑
         const fileNameWithoutExt = basename(task.fileName, extname(task.fileName));
         
         if (task.parseType === 'translate') {
-            // 翻译任务：结果在 translateOutputDir 中
+            // 翻译任务：结果在 translateZipOutputDir/dateString/task_${taskId}/ 中
             outputDir = translateZipOutputDir;
-            zipPath = join(translateOutputDir, `task_${taskId}`, `${fileNameWithoutExt}_translate_result.zip`);
+            zipPath = join(translateZipOutputDir, dateString, `task_${taskId}`, `${fileNameWithoutExt}_translate_result.zip`);
         } else {
-            // OCR任务：结果在 imagesOutputDir 中
+            // OCR任务：结果在 ocrZipOutputDir/dateString/task_${taskId}/ 中
             outputDir = ocrZipOutputDir;
-            zipPath = join(ocrZipOutputDir, `task_${taskId}`, `${fileNameWithoutExt}_ocr_result.zip`);
+            zipPath = join(ocrZipOutputDir, dateString, `task_${taskId}`, `${fileNameWithoutExt}_ocr_result.zip`);
         }
         
         console.log(`任务类型: ${task.parseType}`);
+        console.log(`任务日期: ${dateString}`);
         console.log(`使用输出目录: ${outputDir}`);
         console.log(`查找压缩包文件: ${zipPath}`);
         console.log(`文件是否存在: ${existsSync(zipPath)}`);
