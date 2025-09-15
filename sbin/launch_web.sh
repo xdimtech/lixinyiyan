@@ -28,6 +28,15 @@ fi
 # 确保 start-production.sh 有执行权限
 chmod +x start-production.sh
 
+# 加载 bun 环境变量
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+fi
+
+if [ -f "$HOME/.bun/bin/bun" ]; then
+    export PATH="$HOME/.bun/bin:$PATH"
+fi
+
 # 设置环境变量
 export HOST=${HOST:-"localhost"}
 export PORT=${PORT:-"3000"}
@@ -56,37 +65,71 @@ check_service_startup() {
     local elapsed=0
     local port=${PORT:-3000}
     
+    echo "开始检测服务启动状态，端口: $port" >> "$TEMP_LOG"
+    
     while [ $elapsed -lt $timeout ]; do
-        # 检查进程是否还在运行
-        if ! ps -p $START_PID > /dev/null 2>&1; then
-            # 进程已结束，检查是否是正常启动完成
-            sleep 2
+        # 检查端口是否已监听 (兼容Ubuntu和macOS)
+        local port_listening=false
+        
+        if command -v ss >/dev/null 2>&1; then
+            # Ubuntu/Linux 使用 ss
             if ss -tulpn 2>/dev/null | grep -q ":$port"; then
-                return 0  # 服务启动成功
+                port_listening=true
+            fi
+        elif command -v lsof >/dev/null 2>&1; then
+            # macOS 使用 lsof
+            if lsof -i :$port 2>/dev/null | grep -q LISTEN; then
+                port_listening=true
+            fi
+        elif command -v netstat >/dev/null 2>&1; then
+            # 备用方案使用 netstat
+            if netstat -an 2>/dev/null | grep -q ":$port.*LISTEN"; then
+                port_listening=true
+            fi
+        fi
+        
+        if [ "$port_listening" = true ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') 端口 $port 检测成功，服务启动完成" >> "$TEMP_LOG"
+            return 0  # 服务启动成功
+        fi
+        
+        # 检查启动脚本进程是否还在运行
+        if ! ps -p $START_PID > /dev/null 2>&1; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') 启动脚本进程 $START_PID 已结束，检查是否有bun进程在运行" >> "$TEMP_LOG"
+            # 启动脚本已结束，检查是否有bun进程接管
+            if pgrep -f "bun.*build/index.js" > /dev/null 2>&1; then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 发现bun进程，继续等待端口监听" >> "$TEMP_LOG"
+                # 继续检查端口，不立即返回错误
             else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 未发现bun进程，启动可能失败" >> "$TEMP_LOG"
                 return 1  # 进程异常退出
             fi
         fi
         
-        # 检查端口是否已监听
-        if ss -tulpn 2>/dev/null | grep -q ":$port"; then
-            return 0  # 服务启动成功
-        fi
-        
+        echo "$(date '+%Y-%m-%d %H:%M:%S') 等待中... 已耗时 ${elapsed}s" >> "$TEMP_LOG"
         sleep $interval
         elapsed=$((elapsed + interval))
     done
     
+    echo "$(date '+%Y-%m-%d %H:%M:%S') 启动检测超时" >> "$TEMP_LOG"
     return 2  # 超时
 }
 
-# 显示启动进度
+# 显示启动进度并执行检查
+TEMP_RESULT_FILE=$(mktemp /tmp/lixin_startup_result_XXXXXX)
+
 (
     echo "20" ; echo "# 正在启动服务..."
     check_service_startup
-    STARTUP_RESULT=$?
+    echo $? > "$TEMP_RESULT_FILE"
     echo "100" ; echo "# 启动检查完成"
 ) | zenity --progress --title="启动进度" --text="正在启动Web服务..." --percentage=0 --auto-close --width=400
+
+# 读取启动结果
+STARTUP_RESULT=$(cat "$TEMP_RESULT_FILE" 2>/dev/null || echo "2")
+rm -f "$TEMP_RESULT_FILE"
+
+echo "检测结果: $STARTUP_RESULT (0=成功, 1=失败, 2=超时)" >> "$TEMP_LOG"
 
 # 处理启动结果
 if [ $STARTUP_RESULT -eq 0 ]; then
