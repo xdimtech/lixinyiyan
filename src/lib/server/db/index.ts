@@ -5,7 +5,7 @@ import { env } from '$env/dynamic/private';
 import { initializeDatabase } from './init';
 
 // 构建数据库连接URL，包含时区和其他配置
-const baseUrl = env.DATABASE_URL || 'mysql://root:123456@localhost:3306/lixin';
+const baseUrl = env.DATABASE_URL || 'mysql://root:12345678@localhost:3306/lixin';
 const dbTimezone = env.DB_TIMEZONE || '+08:00';
 
 // 如果URL已经包含参数，追加；否则添加参数

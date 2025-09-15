@@ -69,7 +69,9 @@ export const actions: Actions = {
 
 		try {
 			// 调用任务处理API
-			const response = await fetch('http://localhost:5173/api/process-tasks', {
+			const host = event.url.hostname;
+			const port = event.url.port;
+			const response = await fetch(`http://${host}:${port}/api/process-tasks`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
