@@ -9,7 +9,7 @@ const DATABASE_NAME = 'lixin';
  * 获取数据库配置（不包含数据库名）
  */
 function getDatabaseConfig() {
-    const baseUrl = process.env.DATABASE_URL || 'mysql://root:123456@localhost:3306';
+    const baseUrl = process.env.DATABASE_URL || 'mysql://root:12345678@localhost:3306';
     const dbTimezone = process.env.DB_TIMEZONE || '+08:00';
     
     try {
@@ -27,7 +27,7 @@ function getDatabaseConfig() {
             host: url.hostname,
             port: parseInt(url.port) || 3306,
             user: url.username || 'root',
-            password: url.password || '123456',
+            password: url.password || '12345678',
             uri: fullUrl
         };
     } catch (error) {
@@ -39,13 +39,13 @@ function getDatabaseConfig() {
             multipleStatements: 'true'
         });
         
-        const fullUrl = `mysql://root:123456@localhost:3306?${params.toString()}`;
+        const fullUrl = `mysql://root:12345678@localhost:3306?${params.toString()}`;
         
         return {
             host: 'localhost',
             port: 3306,
             user: 'root',
-            password: '123456',
+            password: '12345678',
             uri: fullUrl
         };
     }
@@ -172,6 +172,25 @@ async function createTablesManually(connection: any): Promise<void> {
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES user(id)
+            )
+        `);
+
+        // 创建任务表
+        await connection.execute(`
+            CREATE TABLE IF NOT EXISTS meta_process_output (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                task_id INT NOT NULL,
+                page_no INT NOT NULL,
+                input_file_path VARCHAR(500) NOT NULL,
+                ocr_txt_path VARCHAR(500),
+                translate_txt_path VARCHAR(500),
+                ocr_status INT NOT NULL DEFAULT 0,
+                translate_status INT NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
+                UNIQUE KEY idx_task_id_page_no (task_id, page_no),
+                FOREIGN KEY (task_id) REFERENCES meta_parse_task(id)
             )
         `);
         
