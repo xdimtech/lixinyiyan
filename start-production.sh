@@ -6,10 +6,16 @@ set -e  # 遇到错误立即退出
 
 echo "🔧 准备启动 Lixin 智能识别翻译系统..."
 
+# 尝试加载 bun 环境变量
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+fi
+
 # 检查 bun 是否安装
 if ! command -v bun &> /dev/null; then
     echo "❌ 错误: 未找到 bun，请先安装 bun"
     echo "💡 安装命令: curl -fsSL https://bun.sh/install | bash"
+    echo "💡 安装后请运行: source ~/.bashrc 或重启终端"
     exit 1
 fi
 

@@ -13,6 +13,13 @@ fi
 # 进入到目录 /home/modelscope/
 cd /home/modelscope/
 
+# 然环境变量生效
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+fi
+# 执行conda activate python12
+conda activate python12
+
 # 显示启动提示
 zenity --info --title="大模型服务启动器" --text="即将启动文本识别和文本翻译服务\n\n请等待启动完成提示..." --width=300
 
@@ -116,7 +123,6 @@ else
     else
         RESULT_TEXT+="⌛ 大模型翻译服务启动超时\n"
     fi
-    RESULT_TEXT+="📄 查看日志: vllm_qwen3.log\n"
 fi
 
 if [ $RESULT2 -eq 0 ]; then
@@ -127,7 +133,6 @@ else
     else
         RESULT_TEXT+="⌛ 大模型识别服务启动超时\n"
     fi
-    RESULT_TEXT+="📄 查看日志: vllm_qwen_vl.log\n"
 fi
 
 # 显示最终结果
