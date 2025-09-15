@@ -30,8 +30,65 @@ if [ ! -d "$DESKTOP_DIR" ]; then
     exit 1
 fi
 
+# 检查关键工具是否安装（给用户提前提示）
+check_tools() {
+    local missing_tools=()
+    local common_paths=(
+        "$HOME/.bun/bin"
+        "$HOME/.local/bin" 
+        "/usr/local/bin"
+        "/usr/bin"
+        "/opt/bun/bin"
+        "/snap/bin"
+    )
+    
+    # 检查bun
+    local found_bun=false
+    for path in "${common_paths[@]}"; do
+        if [ -x "$path/bun" ]; then
+            found_bun=true
+            break
+        fi
+    done
+    
+    if ! $found_bun && ! command -v bun &> /dev/null; then
+        missing_tools+=("bun")
+    fi
+    
+    # 检查node
+    if ! command -v node &> /dev/null; then
+        local found_node=false
+        for path in "${common_paths[@]}"; do
+            if [ -x "$path/node" ]; then
+                found_node=true
+                break
+            fi
+        done
+        if ! $found_node; then
+            missing_tools+=("node")
+        fi
+    fi
+    
+    if [ ${#missing_tools[@]} -gt 0 ]; then
+        local tools_text=$(printf '%s\n' "${missing_tools[@]}")
+        zenity --warning --title="工具检查" \
+            --text="⚠️ 检测到可能缺少以下工具：\n$tools_text\n\n如果您已安装这些工具但仍看到此提示，\n这可能是PATH环境变量的问题。\n\n脚本已经优化了路径检测，应该能够找到常见位置的工具。\n\n是否继续安装桌面快捷方式？" \
+            --width=450
+        
+        return $?
+    fi
+    
+    return 0
+}
+
 echo "🎯 项目路径: $PROJECT_ROOT"
 echo "🖥️  桌面目录: $DESKTOP_DIR"
+
+# 检查工具
+if ! check_tools; then
+    echo "❌ 用户选择不继续安装"
+    exit 0
+fi
 
 # 显示安装确认对话框
 if ! zenity --question --title="安装桌面快捷方式" \

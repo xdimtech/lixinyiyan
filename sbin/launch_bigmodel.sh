@@ -19,7 +19,7 @@ zenity --info --title="大模型服务启动器" --text="即将启动文本识�
 # 启动第一个服务
 zenity --notification --text="开始启动翻译服务..."
 
-nohup CUDA_VISIBLE_DEVICES=1 vllm serve /home/modelscope/models/Qwen/Qwen3-14B-FP8 \
+CUDA_VISIBLE_DEVICES=1 nohup vllm serve /home/modelscope/models/Qwen/Qwen3-14B-FP8 \
     --served-model-name Qwen/Qwen3-14B-FP8 \
     --reasoning-parser qwen3 \
     --port 8003 \
@@ -59,7 +59,7 @@ check_service1() {
 # 启动第二个服务
 zenity --notification --text="开始启动识别服务..."
 
-nohup CUDA_VISIBLE_DEVICES=0 vllm serve /home/modelscope/Qwen/Qwen2___5-VL-7B-Instruct \
+CUDA_VISIBLE_DEVICES=0 nohup vllm serve /home/modelscope/Qwen/Qwen2___5-VL-7B-Instruct \
  --served-model-name Qwen/Qwen2.5-VL-7B-Instruct \
  --port 8002 \
  --host 127.0.0.1 \
