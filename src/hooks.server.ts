@@ -34,6 +34,14 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
 
+	// 调试日志
+	console.log('🔐 Auth check:', {
+		hasSessionToken: !!sessionToken,
+		url: event.url.pathname,
+		protocol: event.url.protocol,
+		cookieName: auth.sessionCookieName
+	});
+
 	if (!sessionToken) {
 		event.locals.user = null;
 		event.locals.session = null;

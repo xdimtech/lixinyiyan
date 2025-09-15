@@ -68,26 +68,32 @@ export async function invalidateSession(sessionId: string) {
 }
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date) {
-	const isProduction = process.env.NODE_ENV === 'production';
-	const isSecure = event.url.protocol === 'https:' || isProduction;
-	
-	event.cookies.set(sessionCookieName, token, {
+	// 所有环境都使用宽松的安全策略以确保兼容性
+	const cookieOptions = {
 		expires: expiresAt,
 		path: '/',
 		httpOnly: true,
-		secure: isSecure,
-		sameSite: isSecure ? 'strict' : 'lax'
+		secure: false, // 所有环境都设为 false，提供最大兼容性
+		sameSite: 'lax' as const // 使用 'lax' 提供更好的兼容性
+	};
+	
+	// 调试日志
+	console.log('🍪 Setting session cookie:', {
+		protocol: event.url.protocol,
+		cookieOptions: { ...cookieOptions, token: '[HIDDEN]' }
 	});
+	
+	event.cookies.set(sessionCookieName, token, cookieOptions);
 }
 
 export function deleteSessionTokenCookie(event: RequestEvent) {
-	const isProduction = process.env.NODE_ENV === 'production';
-	const isSecure = event.url.protocol === 'https:' || isProduction;
-	
-	event.cookies.delete(sessionCookieName, {
+	// 所有环境都使用宽松的安全策略以确保兼容性
+	const cookieOptions = {
 		path: '/',
 		httpOnly: true,
-		secure: isSecure,
-		sameSite: isSecure ? 'strict' : 'lax'
-	});
+		secure: false, // 所有环境都设为 false，提供最大兼容性
+		sameSite: 'lax' as const // 使用 'lax' 提供更好的兼容性
+	};
+	
+	event.cookies.delete(sessionCookieName, cookieOptions);
 }

@@ -167,6 +167,7 @@ async function createTablesManually(connection: any): Promise<void> {
                 file_name VARCHAR(255) NOT NULL,
                 file_path VARCHAR(500) NOT NULL,
                 page_num INT NOT NULL,
+                cur_page INT NOT NULL DEFAULT 0,
                 status INT NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -199,6 +200,7 @@ async function createTablesManually(connection: any): Promise<void> {
             CREATE TABLE IF NOT EXISTS meta_ocr_output (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 task_id INT NOT NULL,
+                page_no INT NOT NULL,
                 input_file_path VARCHAR(500) NOT NULL,
                 output_txt_path VARCHAR(500),
                 status INT NOT NULL DEFAULT 0,
@@ -216,11 +218,24 @@ async function createTablesManually(connection: any): Promise<void> {
                 task_id INT NOT NULL,
                 input_file_path VARCHAR(500) NOT NULL,
                 output_txt_path VARCHAR(500),
-                status INT NOT NULL DEFAULT 0,
+                status INT NOT NULL DEFAULT 0, 
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 FOREIGN KEY (task_id) REFERENCES meta_parse_task(id)
+            )
+        `);
+
+        // meta_prompt表
+        await connection.execute(`
+            CREATE TABLE IF NOT EXISTS meta_prompt (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                prompt1 TEXT NOT NULL,
+                prompt2 TEXT NOT NULL,
+                operator VARCHAR(255) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (operator) REFERENCES user(id)
             )
         `);
         
