@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Web服务启动器
+Name[en]=Web Service Launcher
+Comment=启动Lixin智能识别翻译系统Web服务
+Comment[en]=Launch Lixin Intelligent Recognition Translation Web Service
+Exec=/home/modelscope/lixinyiyan/sbin/launch_web.sh
+Icon=applications-internet
+Terminal=false
+Categories=Network;WebDevelopment;Utility;
+StartupNotify=true
+Keywords=Web;服务;翻译;识别;网站;
+Keywords[en]=Web;Service;Translation;Recognition;Website;

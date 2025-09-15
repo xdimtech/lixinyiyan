@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=大模型服务启动器
+Name[en]=BigModel Service Launcher
+Comment=启动Qwen大模型翻译和识别服务
+Comment[en]=Launch Qwen BigModel Translation and Recognition Services
+Exec=/home/modelscope/lixinyiyan/sbin/launch_bigmodel.sh
+Icon=applications-development
+Terminal=false
+Categories=Development;Utility;
+StartupNotify=true
+Keywords=AI;大模型;翻译;识别;服务;
+Keywords[en]=AI;BigModel;Translation;Recognition;Service;
