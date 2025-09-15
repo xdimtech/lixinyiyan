@@ -78,10 +78,10 @@ export function setSessionTokenCookie(event: RequestEvent, token: string, expire
 	};
 	
 	// 调试日志
-	console.log('🍪 Setting session cookie:', {
-		protocol: event.url.protocol,
-		cookieOptions: { ...cookieOptions, token: '[HIDDEN]' }
-	});
+	// console.log('🍪 Setting session cookie:', {
+	// 	protocol: event.url.protocol,
+	// 	cookieOptions: { ...cookieOptions, token: '[HIDDEN]' }
+	// });
 	
 	event.cookies.set(sessionCookieName, token, cookieOptions);
 }

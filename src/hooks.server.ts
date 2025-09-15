@@ -32,15 +32,28 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 		}
 	}
 
+	// 允许特定来源的跨站请求
+	const origin = event.request.headers.get('origin');
+	event.setHeaders({
+		'Access-Control-Allow-Origin': origin || '*',
+		'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+		'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+	});
+
+	// 处理 OPTIONS 请求
+	if (event.request.method === 'OPTIONS') {
+		return new Response(null, { status: 204 });
+	}
+
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
 
 	// 调试日志
-	console.log('🔐 Auth check:', {
-		hasSessionToken: !!sessionToken,
-		url: event.url.pathname,
-		protocol: event.url.protocol,
-		cookieName: auth.sessionCookieName
-	});
+	// console.log('🔐 Auth check:', {
+	// 	hasSessionToken: !!sessionToken,
+	// 	url: event.url.pathname,
+	// 	protocol: event.url.protocol,
+	// 	cookieName: auth.sessionCookieName
+	// });
 
 	if (!sessionToken) {
 		event.locals.user = null;

@@ -76,14 +76,14 @@ const pathConfigs: Record<Environment, PathConfig> = {
 
   // 生产环境 - 使用标准的系统目录
   production: {
-    pdfUploadDir: '/opt/lixin/data/uploads',
-    pdfOutputDir: '/opt/lixin/data/pdf-split',
-    ocrOutputDir: '/opt/lixin/data/ocr',
-    ocrZipOutputDir: '/opt/lixin/data/ocr-zip',
-    translateZipOutputDir: '/opt/lixin/data/translate-zip',
-    translateOutputDir: '/opt/lixin/data/translate',
-    imagesOutputDir: '/opt/lixin/data/images',
-    logDir: '/var/log/lixin',
+    pdfUploadDir: '~/data/lixin/uploads',
+    pdfOutputDir: '~/data/lixin/pdf-split',
+    ocrOutputDir: '~/data/lixin/ocr',
+    ocrZipOutputDir: '~/data/lixin/ocr-zip',
+    translateZipOutputDir: '~/data/lixin/translate-zip',
+    translateOutputDir: '~/data/lixin/translate',
+    imagesOutputDir: '~/data/lixin/images',
+    logDir: '~/data/lixin/logs',
     tempDir: '/tmp/lixin',
     ocrEndpoint: 'http://127.0.0.1:8002/v1',
     ocrModel: 'Qwen/Qwen2.5-VL-7B-Instruct',

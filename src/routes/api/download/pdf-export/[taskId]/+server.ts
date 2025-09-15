@@ -42,13 +42,14 @@ export const GET: RequestHandler = async ({ params }) => {
 		// 读取文件
 		const fileBuffer = fs.readFileSync(exportedPdfPath);
 		
-		// 使用实际的文件名作为下载文件名
+		// 使用实际的文件名作为下载文件名，并进行编码处理
 		const downloadFileName = pdfFileName;
+		const encodedFilename = encodeURIComponent(downloadFileName);
 
 		return new Response(fileBuffer, {
 			headers: {
 				'Content-Type': 'application/pdf',
-				'Content-Disposition': `attachment; filename="${downloadFileName}"`,
+				'Content-Disposition': `attachment; filename*=UTF-8''${encodedFilename}`,
 				'Content-Length': fileBuffer.length.toString()
 			}
 		});

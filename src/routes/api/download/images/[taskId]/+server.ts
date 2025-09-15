@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import archiver from 'archiver';
 import crypto from 'crypto';
+import { pdfOutputDir } from '$lib/config/paths';
 
 export const POST: RequestHandler = async ({ params, request }) => {
 	const { taskId } = params;
@@ -26,7 +27,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		}
 
 		// 构建图片目录路径
-		const imagesDir = path.join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId);
+		const imagesDir = path.join(pdfOutputDir, taskId);
 
 		// 检查目录是否存在
 		if (!fs.existsSync(imagesDir)) {
@@ -97,10 +98,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			}
 		});
 
+		// 对文件名进行 URL 编码以处理中文字符
+		const encodedFilename = encodeURIComponent(zipFilename);
+		
 		return new Response(stream, {
 			headers: {
 				'Content-Type': 'application/zip',
-				'Content-Disposition': `attachment; filename="${zipFilename}"`,
+				'Content-Disposition': `attachment; filename*=UTF-8''${encodedFilename}`,
 				'Cache-Control': 'no-cache'
 			}
 		});

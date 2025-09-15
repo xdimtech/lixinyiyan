@@ -46,7 +46,11 @@ export const actions: Actions = {
 			const nameWithoutExt = file.name.split('.').slice(0, -1).join('_');
 			const fileName = `${nameWithoutExt}_${timestamp}.${fileExt}`;
 			const datestring = new Date().toISOString().split('T')[0];
-			const filePath = join(UPLOAD_DIR, datestring, fileName);
+			const dateDirPath = join(UPLOAD_DIR, datestring);
+			const filePath = join(dateDirPath, fileName);
+
+			// 确保日期目录存在
+			await mkdir(dateDirPath, { recursive: true });
 
 			// 保存文件
 			const arrayBuffer = await file.arrayBuffer();

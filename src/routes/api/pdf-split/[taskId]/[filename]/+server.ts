@@ -1,3 +1,4 @@
+import { getPathConfig, pdfOutputDir	 } from '$lib/config/paths';
 import type { RequestHandler } from './$types';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
@@ -12,7 +13,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 
 	// 构建文件路径
-	const filePath = path.join(process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split', taskId, filename);
+	const filePath = path.join(pdfOutputDir, taskId, filename);
 
 	// 检查文件是否存在
 	if (!fs.existsSync(filePath)) {

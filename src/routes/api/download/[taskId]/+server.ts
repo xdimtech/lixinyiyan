@@ -73,11 +73,14 @@ export const GET: RequestHandler = async ({ params, locals }) => {
             ? `${fileNameWithoutExt}_translate_result.zip`
             : `${fileNameWithoutExt}_ocr_result.zip`;
         
+        // 对文件名进行 URL 编码以处理中文字符
+        const encodedFilename = encodeURIComponent(downloadFileName);
+        
         // 创建响应，但在流结束后清理临时文件
         const response = new Response(stream as any, {
             headers: {
                 'Content-Type': 'application/zip',
-                'Content-Disposition': `attachment; filename="${downloadFileName}"`
+                'Content-Disposition': `attachment; filename*=UTF-8''${encodedFilename}`
             }
         });
         

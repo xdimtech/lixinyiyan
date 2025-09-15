@@ -9,7 +9,7 @@ const DATABASE_NAME = 'lixin';
  * 获取数据库配置（不包含数据库名）
  */
 function getDatabaseConfig() {
-    const baseUrl = process.env.DATABASE_URL || 'mysql://root:12345678@localhost:3306';
+    const baseUrl = process.env.DATABASE_URL || 'mysql://root:12345678@localhost:3306/lixin';
     const dbTimezone = process.env.DB_TIMEZONE || '+08:00';
     
     try {
@@ -312,14 +312,16 @@ async function addMissingColumns(connection: any): Promise<void> {
 async function createDefaultAdmin(db: any): Promise<void> {
     try {
         const { hash } = await import('@node-rs/argon2');
+        const { eq } = await import('drizzle-orm');
         
         // 检查是否已有管理员用户
-        const [existingAdmin] = await db.execute(
-            'SELECT id FROM user WHERE role = ? LIMIT 1',
-            ['admin']
-        );
+        const existingAdmin = await db
+            .select()
+            .from(schema.user)
+            .where(eq(schema.user.role, 'admin'))
+            .limit(1);
         
-        if (Array.isArray(existingAdmin) && existingAdmin.length > 0) {
+        if (existingAdmin.length > 0) {
             console.log('✅ 管理员用户已存在');
             return;
         }
@@ -333,10 +335,12 @@ async function createDefaultAdmin(db: any): Promise<void> {
             parallelism: 1
         });
         
-        await db.execute(
-            'INSERT INTO user (id, username, password_hash, role) VALUES (?, ?, ?, ?)',
-            [adminId, 'admin', passwordHash, 'admin']
-        );
+        await db.insert(schema.user).values({
+            id: adminId,
+            username: 'admin',
+            passwordHash: passwordHash,
+            role: 'admin'
+        });
         
         console.log('✅ 默认管理员创建成功');
         console.log('   用户名: admin');
@@ -379,8 +383,7 @@ export async function initializeDatabase(): Promise<void> {
         await connection.end();
         
         // 连接到具体数据库，使用带时区的URL
-        const dbUrl = config.uri.replace(/\?/, `/${DATABASE_NAME}?`);
-        const dbConnection = await mysql.createConnection(dbUrl);
+        const dbConnection = await mysql.createConnection(config.uri);
         
         const db = drizzle(dbConnection, { schema, mode: 'default' });
         
@@ -394,7 +397,7 @@ export async function initializeDatabase(): Promise<void> {
         }
         
         // 创建默认管理员用户
-        await createDefaultAdmin(dbConnection);
+        await createDefaultAdmin(db);
         
         // 关闭连接
         await dbConnection.end();
@@ -414,8 +417,7 @@ export async function initializeDatabase(): Promise<void> {
 export async function checkDatabaseConnection(): Promise<boolean> {
     try {
         const config = getDatabaseConfig();
-        const dbUrl = config.uri.replace(/\?/, `/${DATABASE_NAME}?`);
-        const connection = await mysql.createConnection(dbUrl);
+        const connection = await mysql.createConnection(config.uri);
         
         await connection.execute('SELECT 1');
         await connection.end();
