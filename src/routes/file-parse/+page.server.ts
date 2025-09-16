@@ -3,8 +3,10 @@ import type { Actions } from './$types';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path, { join } from 'path';
+import { pathConfig } from '$lib/config/paths';
 
-const UPLOAD_DIR = './uploads/files';
+// 从配置获取路径
+const UPLOAD_DIR = pathConfig.pdfUploadDir;
 const FILE_PARSE_API_URL = 'http://127.0.0.1:8000/file_parse';
 
 export const actions: Actions = {

@@ -4,10 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { splitPdfToImages, createPdfFromPages } from '$lib/server/pdf-split-processor';
+import { pathConfig } from '$lib/config/paths';
 
-// 从环境变量获取目录配置
-const uploadDir = process.env.PDF_UPLOAD_DIR || 'uploads/files';
-const outputDir = process.env.PDF_OUTPUT_DIR || 'uploads/pdf-split';
+// 从配置获取目录配置
+
+const uploadDir = pathConfig.pdfUploadDir;
+const outputDir = pathConfig.pdfOutputDir;
 console.log('uploadDir:', uploadDir);
 console.log('outputDir:', outputDir);
 // 确保目录存在，递归创建所有必要的父目录
