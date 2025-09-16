@@ -513,7 +513,7 @@ export async function processPendingTasksPipeline(): Promise<void> {
             .from(table.metaParseTask)
             .where(eq(table.metaParseTask.status, 0))
             .orderBy(asc(table.metaParseTask.id)) // 先进先出
-            .limit(50); // pending
+            .limit(100); // pending
 
         console.log(`找到 ${pendingTasks.length} 个待处理任务`);
 
